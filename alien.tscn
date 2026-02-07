@@ -1,0 +1,32 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://alien.gd" id="1_alien"]
+
+[sub_resource type="StandardMaterial3D" id="AlienMaterial"]
+albedo_color = Color(0.8, 0.2, 0.3, 1)
+emission_enabled = true
+emission = Color(0.8, 0.1, 0.2, 1)
+emission_energy_multiplier = 1.0
+
+[node name="Alien" type="Node3D"]
+script = ExtResource("1_alien")
+speed = 5.0
+health = 1.0
+
+[node name="Body" type="CSGSphere3D" parent="."]
+radius = 0.5
+radial_segments = 12
+rings = 6
+material = SubResource("AlienMaterial")
+
+[node name="Eye1" type="CSGSphere3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.2, 0.15, -0.35)
+radius = 0.15
+radial_segments = 8
+rings = 4
+
+[node name="Eye2" type="CSGSphere3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.2, 0.15, -0.35)
+radius = 0.15
+radial_segments = 8
+rings = 4

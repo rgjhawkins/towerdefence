@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="AmmoType" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://ammo_type.gd" id="1_ammo"]
+
+[resource]
+script = ExtResource("1_ammo")
+name = "Standard"
+bullet_speed = 25.0
+damage = 1.0
+bullet_color = Color(1, 1, 0, 1)

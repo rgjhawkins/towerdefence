@@ -1,0 +1,18 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://bullet.gd" id="1_bullet"]
+
+[sub_resource type="StandardMaterial3D" id="BulletMaterial"]
+albedo_color = Color(1, 1, 0, 1)
+emission_enabled = true
+emission = Color(1, 1, 0, 1)
+emission_energy_multiplier = 2.0
+
+[node name="Bullet" type="Node3D"]
+script = ExtResource("1_bullet")
+
+[node name="Mesh" type="CSGSphere3D" parent="."]
+radius = 0.15
+radial_segments = 8
+rings = 4
+material = SubResource("BulletMaterial")

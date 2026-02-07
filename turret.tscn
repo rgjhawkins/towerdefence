@@ -1,0 +1,45 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://turret.gd" id="1_turret"]
+[ext_resource type="PackedScene" path="res://bullet.tscn" id="2_bullet"]
+[ext_resource type="Resource" path="res://ammo_standard.tres" id="3_ammo"]
+
+[sub_resource type="StandardMaterial3D" id="TurretBaseMat"]
+albedo_color = Color(0.4, 0.4, 0.5, 1)
+metallic = 0.8
+roughness = 0.3
+
+[sub_resource type="StandardMaterial3D" id="TurretBarrelMat"]
+albedo_color = Color(0.3, 0.3, 0.35, 1)
+metallic = 0.9
+roughness = 0.2
+
+[node name="Turret" type="Node3D"]
+script = ExtResource("1_turret")
+rate_of_fire = 1.0
+tracking_speed = 180.0
+ammo_type = ExtResource("3_ammo")
+bullet_scene = ExtResource("2_bullet")
+
+[node name="Base" type="CSGCylinder3D" parent="."]
+radius = 0.4
+height = 0.3
+sides = 12
+material = SubResource("TurretBaseMat")
+
+[node name="Barrel" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 0)
+
+[node name="Housing" type="CSGBox3D" parent="Barrel"]
+size = Vector3(0.3, 0.25, 0.4)
+material = SubResource("TurretBaseMat")
+
+[node name="Gun" type="CSGCylinder3D" parent="Barrel"]
+transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, 0, 0, -0.5)
+radius = 0.08
+height = 0.8
+sides = 8
+material = SubResource("TurretBarrelMat")
+
+[node name="Muzzle" type="Node3D" parent="Barrel"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.9)
