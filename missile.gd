@@ -8,8 +8,11 @@ extends Node3D
 @export var wobble_strength: float = 3.0
 @export var wobble_frequency: float = 4.0
 @export var curve_strength: float = 2.0
+@export var turn_rate: float = 2.0  # How fast missile corrects toward target
 
 var target_position: Vector3 = Vector3.ZERO
+var launch_direction: Vector3 = Vector3.FORWARD  # Initial launch direction
+var current_direction: Vector3 = Vector3.FORWARD  # Current travel direction
 var age: float = 0.0
 var wobble_offset: float = 0.0
 var curve_direction: Vector3 = Vector3.ZERO
@@ -20,6 +23,8 @@ var current_speed: float = 0.0
 func _ready() -> void:
 	# Start at initial slow speed
 	current_speed = initial_speed
+	# Set initial direction from launch direction
+	current_direction = launch_direction.normalized()
 	# Random phase offset for wobble
 	wobble_offset = randf() * TAU
 	# Random perpendicular curve direction
@@ -35,13 +40,16 @@ func _process(delta: float) -> void:
 	# Accelerate over time
 	current_speed = minf(current_speed + acceleration * delta, max_speed)
 
-	# Base direction towards target
+	# Calculate direction towards target
 	var to_target := target_position - global_position
 	var distance := to_target.length()
-	var base_direction := to_target.normalized()
+	var target_direction := to_target.normalized()
 
-	# Calculate perpendicular vectors for wobble
-	var right := base_direction.cross(Vector3.UP).normalized()
+	# Gradually turn toward target (guided missile behavior)
+	current_direction = current_direction.lerp(target_direction, turn_rate * delta).normalized()
+
+	# Calculate perpendicular vectors for wobble based on current direction
+	var right := current_direction.cross(Vector3.UP).normalized()
 	var up := Vector3.UP
 
 	# Wobble effect - sinusoidal side-to-side and up-down motion
@@ -57,8 +65,8 @@ func _process(delta: float) -> void:
 	var curve_falloff: float = clampf(1.0 - age / 2.0, 0.0, 1.0)
 	var curve: Vector3 = curve_direction * curve_strength * curve_falloff
 
-	# Combine all movement
-	var final_direction := base_direction + (right * wobble_h + up * wobble_v + curve) * delta
+	# Combine current direction with wobble effects
+	var final_direction := current_direction + (right * wobble_h + up * wobble_v + curve) * delta
 	final_direction = final_direction.normalized()
 
 	actual_velocity = final_direction * current_speed

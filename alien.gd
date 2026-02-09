@@ -71,6 +71,24 @@ func _fire_missile() -> void:
 		var launch_offset := Vector3(0, 0.5, 0)
 		missile.global_position = global_position + launch_offset
 		missile.target_position = target_position
+
+		# Generate random launch direction within forward 180 degrees
+		var forward := (target_position - global_position).normalized()
+		# Random angle within hemisphere (-90 to +90 degrees from forward)
+		var random_yaw := randf_range(-PI / 2, PI / 2)
+		var random_pitch := randf_range(-PI / 4, PI / 2)  # Bias upward for launch effect
+
+		# Create rotation basis and apply to forward direction
+		var right := forward.cross(Vector3.UP).normalized()
+		var up := right.cross(forward).normalized()
+
+		# Rotate forward by yaw (left/right) and pitch (up/down)
+		var launch_dir := forward
+		launch_dir = launch_dir.rotated(Vector3.UP, random_yaw)
+		launch_dir = launch_dir.rotated(right, random_pitch)
+		launch_dir = launch_dir.normalized()
+
+		missile.launch_direction = launch_dir
 		get_tree().root.add_child(missile)
 
 
