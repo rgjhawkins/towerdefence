@@ -3,9 +3,11 @@ extends Node3D
 @export var alien_scene: PackedScene
 @export var collector_scene: PackedScene
 @export var spawn_rate: float = 1.0  # Aliens per second
+@export var max_aliens: int = 5  # Maximum aliens at once
 
 var turrets: Array[Turret] = []
 var aliens: Array[Alien] = []
+var total_aliens_spawned: int = 0
 var time_since_spawn: float = 0.0
 var _f11_held: bool = false
 var camera: Camera3D = null
@@ -65,7 +67,7 @@ func _process(delta: float) -> void:
 	time_since_spawn += delta
 
 	var spawn_interval := 1.0 / spawn_rate
-	if time_since_spawn >= spawn_interval:
+	if time_since_spawn >= spawn_interval and total_aliens_spawned < max_aliens:
 		_spawn_alien()
 		time_since_spawn = 0.0
 
@@ -94,6 +96,7 @@ func _spawn_alien() -> void:
 	alien.killed.connect(_on_alien_killed)
 	alien.reached_station.connect(_on_alien_reached_station)
 	aliens.append(alien)
+	total_aliens_spawned += 1
 
 	add_child(alien)
 
