@@ -131,8 +131,8 @@ func _spawn_collector() -> void:
 	if collector_scene:
 		collector_ship = collector_scene.instantiate()
 		# Spawn at hangar position (station is at 0,0,0, hangar is at 0, -0.5, 3.5)
-		collector_ship.global_position = Vector3(0, 1, 5)
-		collector_ship.rotation.y = 0  # Facing away from station
+		collector_ship.global_position = Vector3(-6.5, 1, 0)  # Start on docking platform
+		collector_ship.rotation.y = PI / 2  # Facing away from station
 		collector_ship.health_changed.connect(_on_collector_health_changed)
 		collector_ship.cargo_changed.connect(_on_cargo_changed)
 		collector_ship.cargo_unloaded.connect(_on_cargo_unloaded)
