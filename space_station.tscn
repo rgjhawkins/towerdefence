@@ -3,33 +3,49 @@
 [ext_resource type="Script" path="res://space_station.gd" id="1_station"]
 
 [sub_resource type="StandardMaterial3D" id="StationHullMaterial"]
-albedo_color = Color(0.3, 0.35, 0.4, 1)
-metallic = 0.8
-roughness = 0.3
+albedo_color = Color(0.35, 0.4, 0.45, 1)
+metallic = 0.95
+metallic_specular = 0.6
+roughness = 0.25
+rim_enabled = true
+rim = 0.3
+rim_tint = 0.2
 
 [sub_resource type="StandardMaterial3D" id="StationDetailMaterial"]
-albedo_color = Color(0.2, 0.25, 0.3, 1)
-metallic = 0.9
-roughness = 0.2
+albedo_color = Color(0.25, 0.3, 0.35, 1)
+metallic = 1.0
+metallic_specular = 0.7
+roughness = 0.15
+rim_enabled = true
+rim = 0.2
+rim_tint = 0.3
 
 [sub_resource type="StandardMaterial3D" id="TurretBaseMaterial"]
-albedo_color = Color(0.4, 0.4, 0.45, 1)
-metallic = 0.7
-roughness = 0.4
+albedo_color = Color(0.45, 0.45, 0.5, 1)
+metallic = 0.9
+metallic_specular = 0.5
+roughness = 0.3
+rim_enabled = true
+rim = 0.25
+rim_tint = 0.15
 
 [sub_resource type="StandardMaterial3D" id="CentralTurretMaterial"]
-albedo_color = Color(0.5, 0.45, 0.3, 1)
-metallic = 0.85
-roughness = 0.25
+albedo_color = Color(0.55, 0.5, 0.35, 1)
+metallic = 0.95
+metallic_specular = 0.6
+roughness = 0.2
 emission_enabled = true
-emission = Color(0.3, 0.25, 0.1, 1)
-emission_energy_multiplier = 0.5
+emission = Color(0.4, 0.3, 0.15, 1)
+emission_energy_multiplier = 0.8
+rim_enabled = true
+rim = 0.3
+rim_tint = 0.2
 
 [sub_resource type="StandardMaterial3D" id="GlowMaterial"]
-albedo_color = Color(0.2, 0.6, 1, 1)
+albedo_color = Color(0.3, 0.7, 1, 1)
 emission_enabled = true
-emission = Color(0.2, 0.6, 1, 1)
-emission_energy_multiplier = 2.0
+emission = Color(0.3, 0.7, 1, 1)
+emission_energy_multiplier = 3.0
 
 [sub_resource type="StandardMaterial3D" id="HangarFrameMaterial"]
 albedo_color = Color(0.35, 0.35, 0.4, 1)
