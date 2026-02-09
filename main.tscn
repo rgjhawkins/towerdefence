@@ -4,6 +4,7 @@
 [ext_resource type="PackedScene" path="res://turret.tscn" id="2_turret"]
 [ext_resource type="PackedScene" path="res://alien.tscn" id="3_alien"]
 [ext_resource type="Script" path="res://game_manager.gd" id="4_gamemanager"]
+[ext_resource type="PackedScene" path="res://collector_ship.tscn" id="6_collector"]
 [ext_resource type="PackedScene" path="res://hud.tscn" id="5_hud"]
 
 [sub_resource type="Shader" id="Shader_starfield"]
@@ -222,6 +223,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.39, 1.0, -4.28)
 [node name="GameManager" type="Node3D" parent="."]
 script = ExtResource("4_gamemanager")
 alien_scene = ExtResource("3_alien")
-spawn_interval = 0.5
+collector_scene = ExtResource("6_collector")
+spawn_rate = 1.0
 
 [node name="HUD" parent="." instance=ExtResource("5_hud")]

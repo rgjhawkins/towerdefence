@@ -1,7 +1,8 @@
 extends Node3D
 
 @export var alien_scene: PackedScene
-@export var spawn_interval: float = 0.5
+@export var collector_scene: PackedScene
+@export var spawn_rate: float = 1.0  # Aliens per second
 
 var turrets: Array[Turret] = []
 var aliens: Array[Alien] = []
@@ -9,6 +10,7 @@ var time_since_spawn: float = 0.0
 var _f11_held: bool = false
 var camera: Camera3D = null
 var hud: Node = null
+var collector_ship: Node3D = null
 
 
 func _ready() -> void:
@@ -29,9 +31,9 @@ func _ready() -> void:
 		hud.turret_deselected.connect(_on_turret_deselected)
 		hud.turret_upgraded.connect(_on_turret_upgraded)
 
-	# Spawn initial wave
-	for i in 20:
-		_spawn_alien()
+	# Spawn the collector ship at the hangar
+	_spawn_collector()
+
 
 
 func _find_turrets(node: Node) -> void:
@@ -56,6 +58,7 @@ func _process(delta: float) -> void:
 
 	time_since_spawn += delta
 
+	var spawn_interval := 1.0 / spawn_rate
 	if time_since_spawn >= spawn_interval:
 		_spawn_alien()
 		time_since_spawn = 0.0
@@ -93,9 +96,9 @@ func _on_alien_died(alien: Alien) -> void:
 	aliens.erase(alien)
 
 
-func _on_alien_killed(_alien: Alien, scrap_value: int) -> void:
-	if hud:
-		hud.add_scrap(scrap_value)
+func _on_alien_killed(_alien: Alien, _scrap_value: int) -> void:
+	# Scrap is now collected manually from wreckage
+	pass
 
 
 func _on_alien_reached_station(_alien: Alien, damage: float) -> void:
@@ -116,6 +119,21 @@ func _on_turret_selected(index: int) -> void:
 func _on_turret_deselected() -> void:
 	for turret in turrets:
 		turret.hide_selection()
+
+
+func _spawn_collector() -> void:
+	if collector_scene:
+		collector_ship = collector_scene.instantiate()
+		# Spawn at hangar position (station is at 0,0,0, hangar is at 0, -0.5, 3.5)
+		collector_ship.global_position = Vector3(0, 1, 5)
+		collector_ship.rotation.y = 0  # Facing away from station
+		collector_ship.scrap_collected.connect(_on_scrap_collected)
+		add_child(collector_ship)
+
+
+func _on_scrap_collected(amount: int) -> void:
+	if hud:
+		hud.add_scrap(amount)
 
 
 func _on_turret_upgraded(index: int, stat: String, value: float) -> void:

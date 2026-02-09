@@ -10,6 +10,8 @@ signal reached_station(alien: Alien, damage: float)
 @export var station_damage: float = 1.0
 @export var scrap_value: int = 1
 @export var explosion_scene: PackedScene
+@export var scrap_scene: PackedScene
+@export var scrap_count: int = 5
 
 var target_position: Vector3 = Vector3.ZERO
 var is_alive: bool = true
@@ -48,6 +50,7 @@ func take_damage(amount: float) -> void:
 func die() -> void:
 	is_alive = false
 	_spawn_explosion()
+	_spawn_scrap()
 	died.emit(self)
 	queue_free()
 
@@ -57,3 +60,15 @@ func _spawn_explosion() -> void:
 		var explosion := explosion_scene.instantiate()
 		explosion.global_position = global_position
 		get_tree().root.add_child(explosion)
+
+
+func _spawn_scrap() -> void:
+	if scrap_scene:
+		for i in scrap_count:
+			var scrap := scrap_scene.instantiate()
+			scrap.global_position = global_position + Vector3(
+				randf_range(-0.5, 0.5),
+				randf_range(-0.2, 0.2),
+				randf_range(-0.5, 0.5)
+			)
+			get_tree().root.add_child(scrap)
