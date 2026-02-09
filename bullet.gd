@@ -24,7 +24,7 @@ func _check_hits() -> void:
 	var aliens := get_tree().get_nodes_in_group("aliens")
 
 	for alien in aliens:
-		if alien is Alien and alien.is_alive:
+		if alien is MissileFrigate and alien.is_alive:
 			var dist := global_position.distance_to(alien.global_position)
 			if dist < hit_radius:
 				alien.take_damage(damage)

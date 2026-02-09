@@ -6,7 +6,7 @@ extends Node3D
 @export var max_aliens: int = 5  # Maximum aliens at once
 
 var turrets: Array[Turret] = []
-var aliens: Array[Alien] = []
+var aliens: Array[MissileFrigate] = []
 var total_aliens_spawned: int = 0
 var time_since_spawn: float = 0.0
 var _f11_held: bool = false
@@ -78,7 +78,7 @@ func _spawn_alien() -> void:
 	if alien_scene == null:
 		return
 
-	var alien: Alien = alien_scene.instantiate()
+	var alien: MissileFrigate = alien_scene.instantiate()
 	alien.add_to_group("aliens")
 
 	# Spawn from random position on edge of play area
@@ -101,16 +101,16 @@ func _spawn_alien() -> void:
 	add_child(alien)
 
 
-func _on_alien_died(alien: Alien) -> void:
+func _on_alien_died(alien: MissileFrigate) -> void:
 	aliens.erase(alien)
 
 
-func _on_alien_killed(_alien: Alien, _scrap_value: int) -> void:
+func _on_alien_killed(_alien: MissileFrigate, _scrap_value: int) -> void:
 	# Scrap is now collected manually from wreckage
 	pass
 
 
-func _on_alien_reached_station(_alien: Alien, damage: float) -> void:
+func _on_alien_reached_station(_alien: MissileFrigate, damage: float) -> void:
 	if hud:
 		hud.take_damage(damage)
 
@@ -215,12 +215,12 @@ func _is_on_screen(pos: Vector3) -> bool:
 
 func _update_turret_targets() -> void:
 	# Collect already targeted aliens
-	var targeted_aliens: Array[Alien] = []
+	var targeted_aliens: Array[MissileFrigate] = []
 
 	for turret in turrets:
 		# Check if turret already has a valid target
 		if turret.target and is_instance_valid(turret.target):
-			var alien := turret.target as Alien
+			var alien := turret.target as MissileFrigate
 			if alien and alien.is_alive and _is_on_screen(alien.global_position) and _has_clear_shot(turret.global_position, alien.global_position):
 				# Keep current target
 				targeted_aliens.append(alien)
@@ -228,7 +228,7 @@ func _update_turret_targets() -> void:
 
 		# Need a new target - find closest alien to station that is on screen, not targeted, and has clear shot
 		var station_pos := Vector3.ZERO
-		var closest_alien: Alien = null
+		var closest_alien: MissileFrigate = null
 		var closest_dist := INF
 
 		for alien in aliens:

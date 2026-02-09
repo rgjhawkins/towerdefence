@@ -36,9 +36,9 @@ func _calculate_lead_position() -> Vector3:
 	var muzzle_pos := muzzle.global_position
 	var bullet_speed := ammo_type.bullet_speed
 
-	# Get target velocity if it's an Alien
+	# Get target velocity if it's a MissileFrigate
 	var target_velocity := Vector3.ZERO
-	if target is Alien:
+	if target is MissileFrigate:
 		target_velocity = target.velocity
 
 	# Solve quadratic for intercept time

@@ -1,9 +1,10 @@
-class_name Alien
+class_name MissileFrigate
 extends Node3D
+## Missile Frigate - Approaches station, stops at range, and fires guided missiles
 
-signal died(alien: Alien)
-signal killed(alien: Alien, scrap_value: int)
-signal reached_station(alien: Alien, damage: float)
+signal died(alien: MissileFrigate)
+signal killed(alien: MissileFrigate, scrap_value: int)
+signal reached_station(alien: MissileFrigate, damage: float)
 
 @export var speed: float = 5.0
 @export var health: float = 5.0
@@ -13,8 +14,8 @@ signal reached_station(alien: Alien, damage: float)
 @export var scrap_scene: PackedScene
 @export var missile_scene: PackedScene
 @export var scrap_count: int = 5
-@export var stop_distance_min: float = 12.0  # Minimum distance from station to stop
-@export var stop_distance_max: float = 20.0  # Maximum distance from station to stop
+@export var stop_distance_min: float = 18.0  # Minimum distance from station to stop
+@export var stop_distance_max: float = 28.0  # Maximum distance from station to stop
 @export var fire_rate: float = 1.0  # Missiles per second
 @export var deceleration: float = 3.0  # How fast to slow down
 
