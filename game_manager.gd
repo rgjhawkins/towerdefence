@@ -11,6 +11,7 @@ var _f11_held: bool = false
 var camera: Camera3D = null
 var hud: Node = null
 var collector_ship: Node3D = null
+var space_station: Node3D = null
 
 
 func _ready() -> void:
@@ -30,6 +31,11 @@ func _ready() -> void:
 		hud.turret_selected.connect(_on_turret_selected)
 		hud.turret_deselected.connect(_on_turret_deselected)
 		hud.turret_upgraded.connect(_on_turret_upgraded)
+
+	# Get the space station and connect its tractor beam
+	space_station = get_parent().get_node_or_null("SpaceStation")
+	if space_station and space_station.has_signal("scrap_collected"):
+		space_station.scrap_collected.connect(_on_station_scrap_collected)
 
 	# Spawn the collector ship at the hangar
 	_spawn_collector()
@@ -129,12 +135,23 @@ func _spawn_collector() -> void:
 		collector_ship.rotation.y = 0  # Facing away from station
 		collector_ship.health_changed.connect(_on_collector_health_changed)
 		collector_ship.cargo_changed.connect(_on_cargo_changed)
+		collector_ship.cargo_unloaded.connect(_on_cargo_unloaded)
 		add_child(collector_ship)
 
 
 func _on_cargo_changed(current: int, capacity: int) -> void:
 	if hud:
 		hud.update_cargo(current, capacity)
+
+
+func _on_cargo_unloaded(amount: int) -> void:
+	if hud:
+		hud.add_station_scrap(amount)
+
+
+func _on_station_scrap_collected(amount: int) -> void:
+	if hud:
+		hud.add_station_scrap(amount)
 
 
 func _on_collector_health_changed(current: float, _maximum: float) -> void:

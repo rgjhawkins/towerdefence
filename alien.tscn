@@ -1,24 +1,40 @@
-[gd_scene load_steps=7 format=3]
+[gd_scene load_steps=10 format=3]
 
 [ext_resource type="Script" path="res://alien.gd" id="1_alien"]
 [ext_resource type="PackedScene" path="res://explosion.tscn" id="2_explosion"]
 [ext_resource type="PackedScene" path="res://scrap_piece.tscn" id="3_scrap"]
 
 [sub_resource type="StandardMaterial3D" id="HullMaterial"]
-albedo_color = Color(0.6, 0.15, 0.2, 1)
+albedo_color = Color(0.5, 0.12, 0.15, 1)
 metallic = 0.7
+roughness = 0.4
+
+[sub_resource type="StandardMaterial3D" id="ArmorMaterial"]
+albedo_color = Color(0.35, 0.08, 0.1, 1)
+metallic = 0.8
 roughness = 0.3
 
-[sub_resource type="StandardMaterial3D" id="WingMaterial"]
-albedo_color = Color(0.4, 0.1, 0.15, 1)
-metallic = 0.8
+[sub_resource type="StandardMaterial3D" id="BridgeMaterial"]
+albedo_color = Color(0.2, 0.05, 0.08, 1)
+metallic = 0.6
 roughness = 0.2
 
+[sub_resource type="StandardMaterial3D" id="TurretMaterial"]
+albedo_color = Color(0.4, 0.4, 0.45, 1)
+metallic = 0.85
+roughness = 0.25
+
 [sub_resource type="StandardMaterial3D" id="EngineMaterial"]
-albedo_color = Color(1, 0.5, 0.2, 1)
+albedo_color = Color(1, 0.4, 0.2, 1)
 emission_enabled = true
-emission = Color(1, 0.4, 0.1, 1)
-emission_energy_multiplier = 3.0
+emission = Color(1, 0.3, 0.1, 1)
+emission_energy_multiplier = 4.0
+
+[sub_resource type="StandardMaterial3D" id="GlowMaterial"]
+albedo_color = Color(1, 0.2, 0.1, 1)
+emission_enabled = true
+emission = Color(1, 0.15, 0.05, 1)
+emission_energy_multiplier = 2.0
 
 [node name="Alien" type="Node3D"]
 script = ExtResource("1_alien")
@@ -29,58 +45,173 @@ scrap_scene = ExtResource("3_scrap")
 
 [node name="Ship" type="Node3D" parent="."]
 
-[node name="Fuselage" type="CSGBox3D" parent="Ship"]
-size = Vector3(0.3, 0.15, 0.8)
+[node name="MainHull" type="CSGBox3D" parent="Ship"]
+size = Vector3(0.6, 0.25, 1.8)
 material = SubResource("HullMaterial")
 
-[node name="Nose" type="CSGBox3D" parent="Ship"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.5)
-size = Vector3(0.2, 0.1, 0.3)
+[node name="HullTopArmor" type="CSGBox3D" parent="Ship"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.15, 0)
+size = Vector3(0.5, 0.08, 1.5)
+material = SubResource("ArmorMaterial")
+
+[node name="HullBottomArmor" type="CSGBox3D" parent="Ship"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.15, 0)
+size = Vector3(0.5, 0.08, 1.4)
+material = SubResource("ArmorMaterial")
+
+[node name="BowSection" type="CSGBox3D" parent="Ship"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -1.1)
+size = Vector3(0.45, 0.2, 0.5)
 material = SubResource("HullMaterial")
 
-[node name="NoseTip" type="CSGCylinder3D" parent="Ship"]
-transform = Transform3D(1, 0, 0, 0, 0, -1, 0, 1, 0, 0, 0, -0.7)
-radius = 0.08
-height = 0.15
+[node name="BowTip" type="CSGBox3D" parent="Ship"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -1.45)
+size = Vector3(0.3, 0.15, 0.25)
+material = SubResource("ArmorMaterial")
+
+[node name="BowRam" type="CSGCylinder3D" parent="Ship"]
+transform = Transform3D(1, 0, 0, 0, 0, -1, 0, 1, 0, 0, 0, -1.65)
+radius = 0.1
+height = 0.2
 sides = 8
+material = SubResource("ArmorMaterial")
+
+[node name="Bridge" type="CSGBox3D" parent="Ship"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.3, -0.3)
+size = Vector3(0.35, 0.25, 0.5)
+material = SubResource("BridgeMaterial")
+
+[node name="BridgeTop" type="CSGBox3D" parent="Ship"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.45, -0.3)
+size = Vector3(0.25, 0.08, 0.35)
+material = SubResource("BridgeMaterial")
+
+[node name="BridgeWindow" type="CSGBox3D" parent="Ship"]
+transform = Transform3D(1, 0, 0, 0, 0.98, -0.17, 0, 0.17, 0.98, 0, 0.35, -0.55)
+size = Vector3(0.28, 0.08, 0.08)
+material = SubResource("GlowMaterial")
+
+[node name="SternSection" type="CSGBox3D" parent="Ship"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05, 0.95)
+size = Vector3(0.7, 0.35, 0.3)
 material = SubResource("HullMaterial")
 
-[node name="WingLeft" type="CSGBox3D" parent="Ship"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.4, 0, 0.1)
-size = Vector3(0.5, 0.05, 0.4)
-material = SubResource("WingMaterial")
+[node name="EngineBlockLeft" type="CSGBox3D" parent="Ship"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.4, 0, 0.7)
+size = Vector3(0.25, 0.25, 0.6)
+material = SubResource("ArmorMaterial")
 
-[node name="WingRight" type="CSGBox3D" parent="Ship"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.4, 0, 0.1)
-size = Vector3(0.5, 0.05, 0.4)
-material = SubResource("WingMaterial")
+[node name="EngineBlockRight" type="CSGBox3D" parent="Ship"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.4, 0, 0.7)
+size = Vector3(0.25, 0.25, 0.6)
+material = SubResource("ArmorMaterial")
 
-[node name="WingTipLeft" type="CSGBox3D" parent="Ship"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.6, 0.05, 0.2)
-size = Vector3(0.15, 0.15, 0.2)
-material = SubResource("WingMaterial")
-
-[node name="WingTipRight" type="CSGBox3D" parent="Ship"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.6, 0.05, 0.2)
-size = Vector3(0.15, 0.15, 0.2)
-material = SubResource("WingMaterial")
-
-[node name="Cockpit" type="CSGSphere3D" parent="Ship"]
-transform = Transform3D(0.6, 0, 0, 0, 0.4, 0, 0, 0, 0.8, 0, 0.1, -0.15)
-radius = 0.2
-radial_segments = 12
-rings = 6
-
-[node name="EngineLeft" type="CSGCylinder3D" parent="Ship"]
-transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, -0.15, 0, 0.45)
-radius = 0.08
+[node name="EngineNozzleLeft" type="CSGCylinder3D" parent="Ship"]
+transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, -0.4, 0, 1.05)
+radius = 0.1
 height = 0.15
-sides = 8
+sides = 10
 material = SubResource("EngineMaterial")
 
-[node name="EngineRight" type="CSGCylinder3D" parent="Ship"]
-transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, 0.15, 0, 0.45)
-radius = 0.08
+[node name="EngineNozzleRight" type="CSGCylinder3D" parent="Ship"]
+transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, 0.4, 0, 1.05)
+radius = 0.1
 height = 0.15
-sides = 8
+sides = 10
 material = SubResource("EngineMaterial")
+
+[node name="EngineNozzleCenter" type="CSGCylinder3D" parent="Ship"]
+transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, 0, 0.05, 1.15)
+radius = 0.12
+height = 0.15
+sides = 10
+material = SubResource("EngineMaterial")
+
+[node name="TurretFront" type="Node3D" parent="Ship"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.22, -0.7)
+
+[node name="TurretBase" type="CSGCylinder3D" parent="Ship/TurretFront"]
+radius = 0.1
+height = 0.06
+sides = 8
+material = SubResource("TurretMaterial")
+
+[node name="TurretGun" type="CSGBox3D" parent="Ship/TurretFront"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05, -0.1)
+size = Vector3(0.04, 0.04, 0.2)
+material = SubResource("TurretMaterial")
+
+[node name="TurretRear" type="Node3D" parent="Ship"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.22, 0.4)
+
+[node name="TurretBase" type="CSGCylinder3D" parent="Ship/TurretRear"]
+radius = 0.1
+height = 0.06
+sides = 8
+material = SubResource("TurretMaterial")
+
+[node name="TurretGun" type="CSGBox3D" parent="Ship/TurretRear"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05, 0.1)
+size = Vector3(0.04, 0.04, 0.2)
+material = SubResource("TurretMaterial")
+
+[node name="TurretLeftBroad" type="Node3D" parent="Ship"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.32, 0.15, 0)
+
+[node name="TurretBase" type="CSGCylinder3D" parent="Ship/TurretLeftBroad"]
+radius = 0.08
+height = 0.05
+sides = 8
+material = SubResource("TurretMaterial")
+
+[node name="TurretGun" type="CSGBox3D" parent="Ship/TurretLeftBroad"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.08, 0.04, 0)
+size = Vector3(0.15, 0.03, 0.03)
+material = SubResource("TurretMaterial")
+
+[node name="TurretRightBroad" type="Node3D" parent="Ship"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.32, 0.15, 0)
+
+[node name="TurretBase" type="CSGCylinder3D" parent="Ship/TurretRightBroad"]
+radius = 0.08
+height = 0.05
+sides = 8
+material = SubResource("TurretMaterial")
+
+[node name="TurretGun" type="CSGBox3D" parent="Ship/TurretRightBroad"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.08, 0.04, 0)
+size = Vector3(0.15, 0.03, 0.03)
+material = SubResource("TurretMaterial")
+
+[node name="AntennaLeft" type="CSGCylinder3D" parent="Ship"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.2, 0.5, -0.25)
+radius = 0.015
+height = 0.25
+sides = 6
+material = SubResource("ArmorMaterial")
+
+[node name="AntennaRight" type="CSGCylinder3D" parent="Ship"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.2, 0.5, -0.25)
+radius = 0.015
+height = 0.25
+sides = 6
+material = SubResource("ArmorMaterial")
+
+[node name="VentralFin" type="CSGBox3D" parent="Ship"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.22, 0.3)
+size = Vector3(0.04, 0.15, 0.6)
+material = SubResource("ArmorMaterial")
+
+[node name="RunningLightLeft" type="CSGSphere3D" parent="Ship"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.31, 0, -0.5)
+radius = 0.03
+radial_segments = 6
+rings = 4
+material = SubResource("GlowMaterial")
+
+[node name="RunningLightRight" type="CSGSphere3D" parent="Ship"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.31, 0, -0.5)
+radius = 0.03
+radial_segments = 6
+rings = 4
+material = SubResource("GlowMaterial")

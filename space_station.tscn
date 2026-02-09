@@ -1,4 +1,6 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene load_steps=13 format=3]
+
+[ext_resource type="Script" path="res://space_station.gd" id="1_station"]
 
 [sub_resource type="StandardMaterial3D" id="StationHullMaterial"]
 albedo_color = Color(0.3, 0.35, 0.4, 1)
@@ -40,7 +42,30 @@ emission_enabled = true
 emission = Color(0.1, 0.3, 0.5, 1)
 emission_energy_multiplier = 1.0
 
+[sub_resource type="StandardMaterial3D" id="LandingPadMaterial"]
+albedo_color = Color(0.25, 0.25, 0.3, 1)
+metallic = 0.6
+roughness = 0.5
+
+[sub_resource type="StandardMaterial3D" id="LandingLightMaterial"]
+albedo_color = Color(0.2, 1, 0.3, 1)
+emission_enabled = true
+emission = Color(0.2, 1, 0.3, 1)
+emission_energy_multiplier = 2.5
+
+[sub_resource type="StandardMaterial3D" id="IntakeHoleMaterial"]
+albedo_color = Color(0.05, 0.05, 0.1, 1)
+metallic = 0.9
+roughness = 0.2
+
+[sub_resource type="StandardMaterial3D" id="IntakeGlowMaterial"]
+albedo_color = Color(1, 0.5, 0.2, 1)
+emission_enabled = true
+emission = Color(1, 0.4, 0.1, 1)
+emission_energy_multiplier = 3.0
+
 [node name="SpaceStation" type="Node3D"]
+script = ExtResource("1_station")
 
 [node name="MainHull" type="CSGCylinder3D" parent="."]
 radius = 5.0
@@ -75,6 +100,33 @@ radius = 2.0
 radial_segments = 24
 rings = 12
 material = SubResource("StationHullMaterial")
+
+[node name="ScrapIntake" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.3, 0)
+
+[node name="IntakeRing" type="CSGTorus3D" parent="ScrapIntake"]
+inner_radius = 0.4
+outer_radius = 0.6
+sides = 16
+ring_sides = 8
+material = SubResource("IntakeGlowMaterial")
+
+[node name="IntakeHole" type="CSGCylinder3D" parent="ScrapIntake"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.2, 0)
+radius = 0.4
+height = 0.5
+sides = 16
+material = SubResource("IntakeHoleMaterial")
+
+[node name="IntakeFunnel" type="CSGCylinder3D" parent="ScrapIntake"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.1, 0)
+radius = 0.5
+height = 0.15
+sides = 16
+cone = true
+material = SubResource("StationDetailMaterial")
+
+[node name="IntakePoint" type="Node3D" parent="ScrapIntake"]
 
 [node name="CentralTurretMount" type="Node3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 0)
@@ -233,3 +285,43 @@ material = SubResource("GlowMaterial")
 
 [node name="LaunchPoint" type="Node3D" parent="HangarBay"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1.0)
+
+[node name="ParkingBay" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.5, 1, 0)
+
+[node name="LandingPad" type="CSGCylinder3D" parent="ParkingBay"]
+radius = 1.2
+height = 0.1
+sides = 16
+material = SubResource("LandingPadMaterial")
+
+[node name="PadRing" type="CSGTorus3D" parent="ParkingBay"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05, 0)
+inner_radius = 0.9
+outer_radius = 1.0
+sides = 16
+ring_sides = 6
+material = SubResource("LandingLightMaterial")
+
+[node name="GuideLight1" type="CSGBox3D" parent="ParkingBay"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.1, 1.0)
+size = Vector3(0.1, 0.1, 0.1)
+material = SubResource("LandingLightMaterial")
+
+[node name="GuideLight2" type="CSGBox3D" parent="ParkingBay"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.1, -1.0)
+size = Vector3(0.1, 0.1, 0.1)
+material = SubResource("LandingLightMaterial")
+
+[node name="GuideLight3" type="CSGBox3D" parent="ParkingBay"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.0, 0.1, 0)
+size = Vector3(0.1, 0.1, 0.1)
+material = SubResource("LandingLightMaterial")
+
+[node name="SupportStrut" type="CSGBox3D" parent="ParkingBay"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.8, -0.3, 0)
+size = Vector3(0.15, 0.7, 0.15)
+material = SubResource("HangarFrameMaterial")
+
+[node name="ParkingPoint" type="Node3D" parent="ParkingBay"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)

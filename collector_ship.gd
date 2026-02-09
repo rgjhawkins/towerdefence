@@ -3,6 +3,7 @@ extends Node3D
 signal scrap_collected(amount: int)
 signal health_changed(current: float, maximum: float)
 signal cargo_changed(current: int, capacity: int)
+signal cargo_unloaded(amount: int)
 signal destroyed()
 
 @export var max_health: float = 100.0
@@ -15,14 +16,22 @@ signal destroyed()
 @export var collect_distance: float = 0.5  # Distance to collect scrap
 @export var station_radius: float = 6.0  # Keep away from station center
 @export var cargo_capacity: int = 50  # Max scrap the collector can hold
+@export var unload_range: float = 1.5  # Distance to parking bay to unload
+@export var unload_rate: float = 10.0  # Scrap unloaded per second
 
 var velocity: Vector3 = Vector3.ZERO
 var is_thrusting: bool = false
 var is_tractoring: bool = false
+var is_unloading: bool = false
 var health: float = 100.0
 var current_cargo: int = 0
+var unload_accumulator: float = 0.0
+var parking_bay_pos: Vector3 = Vector3(-6.5, 1, 0)  # Matches ParkingBay position in station
+var intake_pos: Vector3 = Vector3(0, 2.3, 0)  # Station scrap intake position
 var beam_lines: Array[MeshInstance3D] = []
 var beam_material: StandardMaterial3D
+var scrap_visual_material: StandardMaterial3D
+var flying_scrap: Array[Dictionary] = []  # {node: MeshInstance3D, start: Vector3, target: Vector3, progress: float}
 
 @onready var engine_glow: CSGCylinder3D = $Ship/EngineGlow
 @onready var engine_glow_left: CSGCylinder3D = $Ship/EngineGlowLeft
@@ -43,6 +52,13 @@ func _ready() -> void:
 	beam_material.emission_energy_multiplier = 3.0
 	beam_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 
+	# Create glowing scrap visual material
+	scrap_visual_material = StandardMaterial3D.new()
+	scrap_visual_material.albedo_color = Color(1, 0.7, 0.3, 1)
+	scrap_visual_material.emission_enabled = true
+	scrap_visual_material.emission = Color(1, 0.5, 0.2, 1)
+	scrap_visual_material.emission_energy_multiplier = 2.0
+
 
 func take_damage(amount: float) -> void:
 	health -= amount
@@ -58,6 +74,8 @@ func _process(delta: float) -> void:
 	_apply_physics(delta)
 	_update_engine_glow()
 	_process_tractor_beam(delta)
+	_process_unloading(delta)
+	_process_flying_scrap(delta)
 
 
 func _handle_input(delta: float) -> void:
@@ -178,6 +196,85 @@ func _update_beam_lines(targets: Array[Node3D]) -> void:
 			beam.rotate_object_local(Vector3.RIGHT, PI / 2.0)
 		else:
 			beam.visible = false
+
+
+func _process_unloading(delta: float) -> void:
+	# Check distance to parking bay
+	var dist_to_parking := global_position.distance_to(parking_bay_pos)
+
+	if dist_to_parking <= unload_range and current_cargo > 0:
+		is_unloading = true
+		unload_accumulator += unload_rate * delta
+
+		# Unload whole units
+		while unload_accumulator >= 1.0 and current_cargo > 0:
+			unload_accumulator -= 1.0
+			current_cargo -= 1
+			_spawn_flying_scrap()
+			cargo_unloaded.emit(1)
+			cargo_changed.emit(current_cargo, cargo_capacity)
+	else:
+		is_unloading = false
+		unload_accumulator = 0.0
+
+
+func _spawn_flying_scrap() -> void:
+	var scrap_mesh := MeshInstance3D.new()
+	var box := BoxMesh.new()
+	box.size = Vector3(0.1, 0.1, 0.1)
+	box.material = scrap_visual_material
+	scrap_mesh.mesh = box
+
+	# Start position with slight random offset from collector
+	var start_pos := global_position + Vector3(
+		randf_range(-0.3, 0.3),
+		randf_range(0, 0.3),
+		randf_range(-0.3, 0.3)
+	)
+	scrap_mesh.global_position = start_pos
+
+	get_tree().root.add_child(scrap_mesh)
+
+	flying_scrap.append({
+		"node": scrap_mesh,
+		"start": start_pos,
+		"target": intake_pos,
+		"progress": 0.0
+	})
+
+
+func _process_flying_scrap(delta: float) -> void:
+	var scrap_speed := 8.0
+	var to_remove: Array[int] = []
+
+	for i in range(flying_scrap.size()):
+		var scrap_data: Dictionary = flying_scrap[i]
+		var node: MeshInstance3D = scrap_data["node"]
+		var start: Vector3 = scrap_data["start"]
+		var target: Vector3 = scrap_data["target"]
+
+		# Move progress based on distance and speed
+		var total_dist := start.distance_to(target)
+		scrap_data["progress"] += (scrap_speed / total_dist) * delta
+
+		if scrap_data["progress"] >= 1.0:
+			# Reached destination
+			node.queue_free()
+			to_remove.append(i)
+		else:
+			# Interpolate position with slight arc
+			var t: float = scrap_data["progress"]
+			var arc_height := 1.0 * sin(t * PI)  # Arc upward
+			var pos := start.lerp(target, t)
+			pos.y += arc_height
+			node.global_position = pos
+
+			# Spin the scrap
+			node.rotation += Vector3(delta * 5, delta * 7, delta * 3)
+
+	# Remove completed scrap (reverse order to maintain indices)
+	for i in range(to_remove.size() - 1, -1, -1):
+		flying_scrap.remove_at(to_remove[i])
 
 
 func _collect_scrap(scrap: Node) -> void:
