@@ -127,13 +127,19 @@ func _spawn_collector() -> void:
 		# Spawn at hangar position (station is at 0,0,0, hangar is at 0, -0.5, 3.5)
 		collector_ship.global_position = Vector3(0, 1, 5)
 		collector_ship.rotation.y = 0  # Facing away from station
-		collector_ship.scrap_collected.connect(_on_scrap_collected)
+		collector_ship.health_changed.connect(_on_collector_health_changed)
+		collector_ship.cargo_changed.connect(_on_cargo_changed)
 		add_child(collector_ship)
 
 
-func _on_scrap_collected(amount: int) -> void:
+func _on_cargo_changed(current: int, capacity: int) -> void:
 	if hud:
-		hud.add_scrap(amount)
+		hud.update_cargo(current, capacity)
+
+
+func _on_collector_health_changed(current: float, _maximum: float) -> void:
+	if hud:
+		hud.update_collector_health(current)
 
 
 func _on_turret_upgraded(index: int, stat: String, value: float) -> void:

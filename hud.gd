@@ -4,13 +4,19 @@ signal turret_selected(index: int)
 signal turret_deselected()
 signal turret_upgraded(index: int, stat: String, value: float)
 
-@onready var health_label: Label = $HealthContainer/HealthLabel
-@onready var scrap_label: Label = $ScrapContainer/ScrapLabel
+@onready var health_label: Label = $StationContainer/VBox/HealthLabel
+@onready var station_scrap_label: Label = $StationContainer/VBox/StationScrapLabel
+@onready var collector_health_label: Label = $CollectorContainer/VBox/CollectorHealthLabel
+@onready var cargo_label: Label = $CollectorContainer/VBox/CargoLabel
 @onready var turret_icons: VBoxContainer = $TurretContainer
 
 var station_health: float = 100.0
 var max_station_health: float = 100.0
-var scrap: int = 0
+var collector_health: float = 100.0
+var max_collector_health: float = 100.0
+var station_scrap: int = 0
+var cargo_current: int = 0
+var cargo_capacity: int = 50
 var selected_turret_index: int = -1
 var turret_icon_nodes: Array[PanelContainer] = []
 var turret_rof_costs: Array[int] = [5, 5, 5, 5, 5]
@@ -21,7 +27,9 @@ var turret_track_values: Array[float] = [45.0, 45.0, 45.0, 45.0, 45.0]
 
 func _ready() -> void:
 	update_health(station_health)
-	update_scrap(scrap)
+	update_collector_health(collector_health)
+	update_station_scrap(station_scrap)
+	update_cargo(cargo_current, cargo_capacity)
 	_setup_turret_icons()
 
 
@@ -44,10 +52,10 @@ func _setup_turret_icons() -> void:
 func _on_rof_upgrade_pressed(index: int) -> void:
 	var cost := turret_rof_costs[index]
 
-	if scrap >= cost:
+	if station_scrap >= cost:
 		# Deduct scrap
-		scrap -= cost
-		update_scrap(scrap)
+		station_scrap -= cost
+		update_station_scrap(station_scrap)
 
 		# Increase ROF by 10 RPM (10/60 shots per second)
 		turret_rof_values[index] += 10.0 / 60.0
@@ -80,10 +88,10 @@ func _update_turret_rof_cost_display(index: int) -> void:
 func _on_track_upgrade_pressed(index: int) -> void:
 	var cost := turret_track_costs[index]
 
-	if scrap >= cost:
+	if station_scrap >= cost:
 		# Deduct scrap
-		scrap -= cost
-		update_scrap(scrap)
+		station_scrap -= cost
+		update_station_scrap(station_scrap)
 
 		# Increase tracking speed by 5 degrees/sec
 		turret_track_values[index] += 5.0
@@ -141,6 +149,24 @@ func update_health(health: float) -> void:
 	health_label.text = "Station: %d / %d" % [int(station_health), int(max_station_health)]
 
 
+func update_collector_health(health: float) -> void:
+	collector_health = health
+	collector_health_label.text = "Collector: %d / %d" % [int(collector_health), int(max_collector_health)]
+
+
+func take_collector_damage(amount: float) -> void:
+	collector_health -= amount
+	collector_health = max(collector_health, 0)
+	update_collector_health(collector_health)
+
+	if collector_health <= 0:
+		_on_collector_destroyed()
+
+
+func _on_collector_destroyed() -> void:
+	print("Collector Destroyed!")
+
+
 func take_damage(amount: float) -> void:
 	station_health -= amount
 	station_health = max(station_health, 0)
@@ -154,11 +180,17 @@ func _on_station_destroyed() -> void:
 	print("Station Destroyed! Game Over!")
 
 
-func add_scrap(amount: int) -> void:
-	scrap += amount
-	update_scrap(scrap)
+func add_station_scrap(amount: int) -> void:
+	station_scrap += amount
+	update_station_scrap(station_scrap)
 
 
-func update_scrap(value: int) -> void:
-	scrap = value
-	scrap_label.text = "Scrap: %d" % scrap
+func update_station_scrap(value: int) -> void:
+	station_scrap = value
+	station_scrap_label.text = "Station Scrap: %d" % station_scrap
+
+
+func update_cargo(current: int, capacity: int) -> void:
+	cargo_current = current
+	cargo_capacity = capacity
+	cargo_label.text = "Cargo Hold: %d / %d" % [cargo_current, cargo_capacity]
