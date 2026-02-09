@@ -15,6 +15,8 @@ var selected_turret_index: int = -1
 var turret_icon_nodes: Array[PanelContainer] = []
 var turret_rof_costs: Array[int] = [5, 5, 5, 5, 5]
 var turret_rof_values: Array[float] = [1.0, 1.0, 1.0, 1.0, 1.0]
+var turret_track_costs: Array[int] = [5, 5, 5, 5, 5]
+var turret_track_values: Array[float] = [45.0, 45.0, 45.0, 45.0, 45.0]
 
 
 func _ready() -> void:
@@ -33,6 +35,10 @@ func _setup_turret_icons() -> void:
 		# Connect ROF upgrade button
 		var rof_button: Button = icon.get_node("VBox/RofContainer/RofUpgrade")
 		rof_button.pressed.connect(_on_rof_upgrade_pressed.bind(i - 1))
+
+		# Connect Track upgrade button
+		var track_button: Button = icon.get_node("VBox/TrackContainer/TrackUpgrade")
+		track_button.pressed.connect(_on_track_upgrade_pressed.bind(i - 1))
 
 
 func _on_rof_upgrade_pressed(index: int) -> void:
@@ -69,6 +75,40 @@ func _update_turret_rof_cost_display(index: int) -> void:
 	var icon := turret_icon_nodes[index]
 	var rof_cost: Label = icon.get_node("VBox/RofContainer/RofCost")
 	rof_cost.text = "(%d)" % turret_rof_costs[index]
+
+
+func _on_track_upgrade_pressed(index: int) -> void:
+	var cost := turret_track_costs[index]
+
+	if scrap >= cost:
+		# Deduct scrap
+		scrap -= cost
+		update_scrap(scrap)
+
+		# Increase tracking speed by 5 degrees/sec
+		turret_track_values[index] += 5.0
+
+		# Update display
+		_update_turret_track_display(index)
+
+		# Increase next cost by 5
+		turret_track_costs[index] += 5
+		_update_turret_track_cost_display(index)
+
+		# Emit signal to update actual turret
+		turret_upgraded.emit(index, "tracking_speed", turret_track_values[index])
+
+
+func _update_turret_track_display(index: int) -> void:
+	var icon := turret_icon_nodes[index]
+	var track_value: Label = icon.get_node("VBox/TrackContainer/TrackValue")
+	track_value.text = "%d" % int(turret_track_values[index])
+
+
+func _update_turret_track_cost_display(index: int) -> void:
+	var icon := turret_icon_nodes[index]
+	var track_cost: Label = icon.get_node("VBox/TrackContainer/TrackCost")
+	track_cost.text = "(%d)" % turret_track_costs[index]
 
 
 func _on_turret_icon_input(event: InputEvent, index: int) -> void:

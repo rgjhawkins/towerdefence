@@ -124,6 +124,8 @@ func _on_turret_upgraded(index: int, stat: String, value: float) -> void:
 		match stat:
 			"rate_of_fire":
 				turret.rate_of_fire = value
+			"tracking_speed":
+				turret.tracking_speed = value
 
 
 func _has_clear_shot(turret_pos: Vector3, alien_pos: Vector3) -> bool:

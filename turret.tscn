@@ -17,7 +17,7 @@ roughness = 0.2
 [node name="Turret" type="Node3D"]
 script = ExtResource("1_turret")
 rate_of_fire = 1.0
-tracking_speed = 180.0
+tracking_speed = 45.0
 ammo_type = ExtResource("3_ammo")
 bullet_scene = ExtResource("2_bullet")
 

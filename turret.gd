@@ -103,9 +103,17 @@ func _track_target(delta: float) -> void:
 func _try_fire() -> void:
 	var fire_interval := 1.0 / rate_of_fire
 
-	if time_since_last_shot >= fire_interval:
+	if time_since_last_shot >= fire_interval and _is_on_target():
 		_fire()
 		time_since_last_shot = 0.0
+
+
+func _is_on_target() -> bool:
+	var barrel_forward := -barrel.global_transform.basis.z.normalized()
+	var to_target := (aim_position - muzzle.global_position).normalized()
+	var angle := barrel_forward.angle_to(to_target)
+	# Fire if within 5 degrees of target
+	return angle < deg_to_rad(5.0)
 
 
 func _fire() -> void:
