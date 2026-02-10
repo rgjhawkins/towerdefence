@@ -1,7 +1,7 @@
 class_name Bullet
 extends Node3D
 
-var speed: float = 50.0
+var speed: float = 100.0
 var damage: float = 10.0
 var direction: Vector3 = Vector3.FORWARD
 var max_distance: float = 100.0

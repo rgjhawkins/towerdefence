@@ -6,7 +6,7 @@
 [ext_resource type="PackedScene" path="res://missile.tscn" id="4_missile"]
 
 [sub_resource type="StandardMaterial3D" id="HullMaterial"]
-albedo_color = Color(0.55, 0.15, 0.18, 1)
+albedo_color = Color(0.75, 0.75, 0.78, 1)
 metallic = 0.9
 metallic_specular = 0.5
 roughness = 0.3
@@ -15,7 +15,7 @@ rim = 0.3
 rim_tint = 0.25
 
 [sub_resource type="StandardMaterial3D" id="ArmorMaterial"]
-albedo_color = Color(0.4, 0.1, 0.12, 1)
+albedo_color = Color(0.6, 0.6, 0.63, 1)
 metallic = 0.95
 metallic_specular = 0.6
 roughness = 0.2
@@ -24,7 +24,7 @@ rim = 0.25
 rim_tint = 0.2
 
 [sub_resource type="StandardMaterial3D" id="BridgeMaterial"]
-albedo_color = Color(0.25, 0.08, 0.1, 1)
+albedo_color = Color(0.35, 0.35, 0.38, 1)
 metallic = 0.85
 metallic_specular = 0.7
 roughness = 0.15
@@ -33,7 +33,7 @@ rim = 0.2
 rim_tint = 0.3
 
 [sub_resource type="StandardMaterial3D" id="TurretMaterial"]
-albedo_color = Color(0.45, 0.45, 0.5, 1)
+albedo_color = Color(0.5, 0.5, 0.53, 1)
 metallic = 0.95
 metallic_specular = 0.6
 roughness = 0.2
@@ -42,16 +42,16 @@ rim = 0.2
 rim_tint = 0.15
 
 [sub_resource type="StandardMaterial3D" id="EngineMaterial"]
-albedo_color = Color(1, 0.5, 0.25, 1)
+albedo_color = Color(1, 0.6, 0.3, 1)
 emission_enabled = true
-emission = Color(1, 0.35, 0.1, 1)
-emission_energy_multiplier = 5.0
+emission = Color(1, 0.4, 0.1, 1)
+emission_energy_multiplier = 6.0
 
 [sub_resource type="StandardMaterial3D" id="GlowMaterial"]
-albedo_color = Color(1, 0.25, 0.12, 1)
+albedo_color = Color(1, 0.3, 0.15, 1)
 emission_enabled = true
-emission = Color(1, 0.2, 0.08, 1)
-emission_energy_multiplier = 3.0
+emission = Color(1, 0.25, 0.1, 1)
+emission_energy_multiplier = 4.0
 
 [node name="Alien" type="Node3D"]
 script = ExtResource("1_alien")

@@ -31,7 +31,7 @@ void sky() {
     vec3 dir = normalize(EYEDIR);
 
     // Pure black background
-    vec3 bg_color = vec3(0.01, 0.01, 0.015);
+    vec3 bg_color = vec3(0.0, 0.0, 0.0);
 
     // Convert direction to spherical for better star distribution
     float theta = atan(dir.z, dir.x);
@@ -68,7 +68,7 @@ void sky() {
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_sky"]
 shader = SubResource("Shader_starfield")
-shader_parameter/star_brightness = 1.8
+shader_parameter/star_brightness = 0.0
 shader_parameter/twinkle_speed = 1.5
 
 [sub_resource type="Sky" id="Sky_space"]
