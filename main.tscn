@@ -1,7 +1,6 @@
-[gd_scene load_steps=19 format=3]
+[gd_scene load_steps=18 format=3]
 
 [ext_resource type="PackedScene" path="res://space_station.tscn" id="1_station"]
-[ext_resource type="PackedScene" path="res://turret.tscn" id="2_turret"]
 [ext_resource type="PackedScene" path="res://alien.tscn" id="3_alien"]
 [ext_resource type="Script" path="res://game_manager.gd" id="4_gamemanager"]
 [ext_resource type="PackedScene" path="res://collector_ship.tscn" id="6_collector"]
@@ -208,78 +207,12 @@ light_color = Color(0.95, 0.95, 1, 1)
 light_energy = 1.2
 shadow_enabled = true
 
-[node name="StationLightCenter" type="OmniLight3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4, 0)
-light_color = Color(0.8, 0.85, 1, 1)
-light_energy = 2.0
-omni_range = 15.0
-omni_attenuation = 1.5
-
-[node name="StationLightBlue1" type="OmniLight3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, -1, 3)
-light_color = Color(0.3, 0.5, 1, 1)
-light_energy = 1.2
-omni_range = 6.0
-omni_attenuation = 1.5
-
-[node name="StationLightBlue2" type="OmniLight3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, -1, 3)
-light_color = Color(0.3, 0.5, 1, 1)
-light_energy = 1.2
-omni_range = 6.0
-omni_attenuation = 1.5
-
-[node name="StationLightBlue3" type="OmniLight3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, -1, -3)
-light_color = Color(0.3, 0.5, 1, 1)
-light_energy = 1.2
-omni_range = 6.0
-omni_attenuation = 1.5
-
-[node name="StationLightBlue4" type="OmniLight3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, -1, -3)
-light_color = Color(0.3, 0.5, 1, 1)
-light_energy = 1.2
-omni_range = 6.0
-omni_attenuation = 1.5
-
-[node name="ParkingBayLight" type="OmniLight3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.5, 2, 0)
-light_color = Color(0.2, 1, 0.4, 1)
-light_energy = 2.0
-omni_range = 5.0
-omni_attenuation = 1.0
-
-[node name="IntakeLight" type="OmniLight3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3, 0)
-light_color = Color(1, 0.5, 0.2, 1)
-light_energy = 1.5
-omni_range = 4.0
-omni_attenuation = 1.2
-
 [node name="SpaceStation" parent="." instance=ExtResource("1_station")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
-
-[node name="Turret1" parent="." instance=ExtResource("2_turret")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.0, 1.15, 0)
-
-[node name="Turret2" parent="." instance=ExtResource("2_turret")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.55, 1.15, 4.76)
-
-[node name="Turret3" parent="." instance=ExtResource("2_turret")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.05, 1.15, 2.94)
-
-[node name="Turret4" parent="." instance=ExtResource("2_turret")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.05, 1.15, -2.94)
-
-[node name="Turret5" parent="." instance=ExtResource("2_turret")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.55, 1.15, -4.76)
 
 [node name="GameManager" type="Node3D" parent="."]
 script = ExtResource("4_gamemanager")
 alien_scene = ExtResource("3_alien")
 bomber_scene = ExtResource("7_bomber")
 collector_scene = ExtResource("6_collector")
-spawn_rate = 1.0
 
 [node name="HUD" parent="." instance=ExtResource("5_hud")]

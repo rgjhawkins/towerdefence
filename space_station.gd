@@ -7,12 +7,14 @@ signal scrap_collected(amount: int)
 @export var collect_distance: float = 0.8  # Distance to collect
 @export var shield_radius: float = 3.0  # Shield bubble size (covers central station only)
 @export var shield_flash_duration: float = 0.3  # How long flash lasts
+@export var shield_pulse_duration: float = 0.5  # How long regen pulse lasts
 
 var beam_lines: Array[MeshInstance3D] = []
 var beam_material: StandardMaterial3D
 var shield_mesh: MeshInstance3D
 var shield_material: StandardMaterial3D
 var shield_flash_timer: float = 0.0
+var shield_pulse_timer: float = 0.0
 
 @onready var intake: Node3D = $ScrapIntake
 
@@ -29,11 +31,14 @@ func _ready() -> void:
 	# Create shield bubble
 	_create_shield_bubble()
 
-	# Connect to HUD shield_hit signal
+	# Connect to HUD shield signals
 	await get_tree().process_frame
 	var hud = get_tree().root.get_node_or_null("Main/HUD")
-	if hud and hud.has_signal("shield_hit"):
-		hud.shield_hit.connect(_on_shield_hit)
+	if hud:
+		if hud.has_signal("shield_hit"):
+			hud.shield_hit.connect(_on_shield_hit)
+		if hud.has_signal("shield_regen"):
+			hud.shield_regen.connect(_on_shield_regen)
 
 
 func _create_shield_bubble() -> void:
@@ -64,12 +69,17 @@ func _on_shield_hit() -> void:
 	shield_flash_timer = shield_flash_duration
 
 
+func _on_shield_regen() -> void:
+	shield_pulse_timer = shield_pulse_duration
+
+
 func _process(delta: float) -> void:
 	_process_tractor_beam(delta)
-	_process_shield_flash(delta)
+	_process_shield_effects(delta)
 
 
-func _process_shield_flash(delta: float) -> void:
+func _process_shield_effects(delta: float) -> void:
+	# Hit flash takes priority over regen pulse
 	if shield_flash_timer > 0:
 		shield_flash_timer -= delta
 		var t := shield_flash_timer / shield_flash_duration
@@ -77,6 +87,13 @@ func _process_shield_flash(delta: float) -> void:
 		var alpha := t * 0.15
 		shield_material.albedo_color = Color(0.4, 0.8, 1, alpha)
 		shield_material.emission_energy_multiplier = 0.3 + t * 0.7
+	elif shield_pulse_timer > 0:
+		shield_pulse_timer -= delta
+		var t := shield_pulse_timer / shield_pulse_duration
+		# Very dim pulse for regen - green tint
+		var alpha := t * 0.05
+		shield_material.albedo_color = Color(0.3, 1, 0.6, alpha)
+		shield_material.emission_energy_multiplier = 0.1 + t * 0.2
 	else:
 		shield_material.albedo_color = Color(0.4, 0.8, 1, 0)
 		shield_material.emission_energy_multiplier = 0.0

@@ -4,6 +4,7 @@ signal turret_selected(index: int)
 signal turret_deselected()
 signal turret_upgraded(index: int, stat: String, value: float)
 signal shield_hit()
+signal shield_regen()
 
 @onready var health_label: Label = $StationContainer/VBox/HealthLabel
 @onready var shield_label: Label = $StationContainer/VBox/ShieldLabel
@@ -19,6 +20,7 @@ var max_station_health: float = 100.0
 var shield_health: float = 100.0
 var max_shield_health: float = 100.0
 var shield_regen_rate: float = 0.5  # HP per second
+var shield_regen_accumulator: float = 0.0
 var collector_health: float = 100.0
 var max_collector_health: float = 100.0
 var station_scrap: int = 0
@@ -44,9 +46,16 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	# Regenerate shield
 	if shield_health < max_shield_health:
-		shield_health += shield_regen_rate * delta
+		var regen_amount := shield_regen_rate * delta
+		shield_health += regen_amount
 		shield_health = minf(shield_health, max_shield_health)
 		update_shield(shield_health)
+
+		# Pulse every 1 HP recovered
+		shield_regen_accumulator += regen_amount
+		if shield_regen_accumulator >= 1.0:
+			shield_regen_accumulator -= 1.0
+			shield_regen.emit()
 
 
 func _setup_turret_icons() -> void:
