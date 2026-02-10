@@ -2,6 +2,7 @@ class_name Turret
 extends Node3D
 
 signal fired(bullet: Bullet)
+signal clicked(turret: Turret)
 
 @export var rate_of_fire: float = 2.0  # Shots per second
 @export var tracking_speed: float = 180.0  # Degrees per second
@@ -14,11 +15,22 @@ var selection_ring: MeshInstance3D = null
 
 @onready var barrel: Node3D = $Barrel
 @onready var muzzle: Node3D = $Barrel/Muzzle
+@onready var click_area: Area3D = $ClickArea
 
 
 func _ready() -> void:
 	if ammo_type == null:
 		ammo_type = AmmoType.new()
+
+	# Connect click area input
+	if click_area:
+		click_area.input_event.connect(_on_click_area_input_event)
+
+
+func _on_click_area_input_event(_camera: Node, event: InputEvent, _position: Vector3, _normal: Vector3, _shape_idx: int) -> void:
+	if event is InputEventMouseButton:
+		if event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+			clicked.emit(self)
 
 
 

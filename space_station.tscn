@@ -157,7 +157,7 @@ ring_sides = 8
 material = SubResource("GlowMaterial")
 
 [node name="TurretMount1" type="Node3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.0, 1.0, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.0, -5.0)
 
 [node name="Platform" type="CSGCylinder3D" parent="TurretMount1"]
 radius = 0.8
@@ -174,7 +174,7 @@ ring_sides = 8
 material = SubResource("PlatformGlowMaterial")
 
 [node name="TurretMount2" type="Node3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.55, 1.0, 4.76)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.76, 1.0, -1.55)
 
 [node name="Platform" type="CSGCylinder3D" parent="TurretMount2"]
 radius = 0.8
@@ -191,7 +191,7 @@ ring_sides = 8
 material = SubResource("PlatformGlowMaterial")
 
 [node name="TurretMount3" type="Node3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.05, 1.0, 2.94)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.94, 1.0, 4.05)
 
 [node name="Platform" type="CSGCylinder3D" parent="TurretMount3"]
 radius = 0.8
@@ -208,7 +208,7 @@ ring_sides = 8
 material = SubResource("PlatformGlowMaterial")
 
 [node name="TurretMount4" type="Node3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.05, 1.0, -2.94)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.94, 1.0, 4.05)
 
 [node name="Platform" type="CSGCylinder3D" parent="TurretMount4"]
 radius = 0.8
@@ -225,7 +225,7 @@ ring_sides = 8
 material = SubResource("PlatformGlowMaterial")
 
 [node name="TurretMount5" type="Node3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.55, 1.0, -4.76)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.76, 1.0, -1.55)
 
 [node name="Platform" type="CSGCylinder3D" parent="TurretMount5"]
 radius = 0.8
@@ -242,7 +242,7 @@ ring_sides = 8
 material = SubResource("PlatformGlowMaterial")
 
 [node name="ParkingBay" type="Node3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.0, 1, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.76, 1, 1.55)
 
 [node name="LandingPad" type="CSGCylinder3D" parent="ParkingBay"]
 radius = 1.2

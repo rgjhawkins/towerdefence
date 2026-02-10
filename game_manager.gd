@@ -7,7 +7,7 @@ const FRIGATE_SPAWN_HEIGHT := 1.0
 const BOMBER_SPAWN_DISTANCE := 35.0
 const BOMBER_SPAWN_HEIGHT := 1.5
 const BOMBER_ANGLE_SPACING := 0.15
-const COLLECTOR_SPAWN_POS := Vector3(-5.0, 1.5, 0)
+const COLLECTOR_SPAWN_POS := Vector3(-4.76, 1.5, 1.55)
 const COLLECTOR_SPAWN_ROTATION := PI / 2
 const LEVEL_TRANSITION_DELAY := 3.0
 const DEFAULT_STATION_RADIUS := 5.0
@@ -42,10 +42,6 @@ func _ready() -> void:
 	if not hud:
 		# Fallback to path-based lookup
 		hud = get_parent().get_node_or_null("HUD")
-	if hud:
-		hud.turret_selected.connect(_on_turret_selected)
-		hud.turret_deselected.connect(_on_turret_deselected)
-		hud.turret_upgraded.connect(_on_turret_upgraded)
 
 	# Get the space station using group
 	space_station = get_tree().get_first_node_in_group("space_station") as Node3D
@@ -65,8 +61,14 @@ func _ready() -> void:
 func _find_turrets(node: Node) -> void:
 	if node is Turret:
 		turrets.append(node)
+		node.clicked.connect(_on_turret_clicked)
 	for child in node.get_children():
 		_find_turrets(child)
+
+
+func _on_turret_clicked(turret: Turret) -> void:
+	if hud:
+		hud.select_turret(turret)
 
 
 func _setup_level_manager() -> void:
@@ -185,18 +187,6 @@ func _on_alien_killed(_alien: Node3D, _scrap_value: int) -> void:
 	pass
 
 
-func _on_turret_selected(index: int) -> void:
-	for turret in turrets:
-		turret.hide_selection()
-	if index >= 0 and index < turrets.size():
-		turrets[index].show_selection()
-
-
-func _on_turret_deselected() -> void:
-	for turret in turrets:
-		turret.hide_selection()
-
-
 func _spawn_collector() -> void:
 	if collector_scene:
 		collector_ship = collector_scene.instantiate()
@@ -226,16 +216,6 @@ func _on_station_scrap_collected(amount: int) -> void:
 func _on_collector_health_changed(current: float, _maximum: float) -> void:
 	if hud:
 		hud.update_collector_health(current)
-
-
-func _on_turret_upgraded(index: int, stat: String, value: float) -> void:
-	if index >= 0 and index < turrets.size():
-		var turret := turrets[index]
-		match stat:
-			"rate_of_fire":
-				turret.rate_of_fire = value
-			"tracking_speed":
-				turret.tracking_speed = value
 
 
 func _get_station_radius() -> float:

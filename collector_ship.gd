@@ -18,7 +18,7 @@ const SCRAP_SPIN_SPEED := Vector3(5.0, 7.0, 3.0)
 const BEAM_RADIUS := 0.02
 
 # Default positions (fallback if not assigned)
-const DEFAULT_PARKING_POS := Vector3(-5.0, 1, 0)
+const DEFAULT_PARKING_POS := Vector3(-4.76, 1, 1.55)
 const DEFAULT_INTAKE_POS := Vector3(0, 2.3, 0)
 
 # Inner class for flying scrap data - replaces Dictionary for type safety
@@ -117,14 +117,14 @@ func _process(delta: float) -> void:
 
 
 func _handle_input(delta: float) -> void:
-	# Rotation (left/right arrows)
-	if Input.is_action_pressed("ui_left"):
+	# Rotation (A/D keys)
+	if Input.is_physical_key_pressed(KEY_A):
 		rotation.y += deg_to_rad(rotation_speed) * delta
-	if Input.is_action_pressed("ui_right"):
+	if Input.is_physical_key_pressed(KEY_D):
 		rotation.y -= deg_to_rad(rotation_speed) * delta
 
-	# Thrust (up arrow)
-	is_thrusting = Input.is_action_pressed("ui_up")
+	# Thrust (W key)
+	is_thrusting = Input.is_physical_key_pressed(KEY_W)
 	if is_thrusting:
 		var forward := -global_transform.basis.z
 		velocity += forward * thrust_power * delta

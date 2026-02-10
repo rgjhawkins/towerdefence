@@ -84,385 +84,94 @@ theme_override_font_sizes/font_size = 24
 text = "Station Scrap: 0"
 horizontal_alignment = 2
 
-[node name="TurretContainer" type="VBoxContainer" parent="."]
-anchors_preset = 6
-anchor_left = 1.0
-anchor_top = 0.5
-anchor_right = 1.0
-anchor_bottom = 0.5
-offset_left = -130.0
-offset_top = -230.0
-offset_bottom = 230.0
-grow_horizontal = 0
-grow_vertical = 2
-theme_override_constants/separation = 10
+[node name="TurretPanel" type="PanelContainer" parent="."]
+visible = false
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -170.0
+offset_top = 100.0
+offset_right = 170.0
+offset_bottom = 360.0
+grow_horizontal = 2
 
-[node name="TurretIcon1" type="PanelContainer" parent="TurretContainer"]
-custom_minimum_size = Vector2(120, 80)
+[node name="VBox" type="VBoxContainer" parent="TurretPanel"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Header" type="HBoxContainer" parent="TurretPanel/VBox"]
 layout_mode = 2
 
-[node name="VBox" type="VBoxContainer" parent="TurretContainer/TurretIcon1"]
+[node name="TitleLabel" type="Label" parent="TurretPanel/VBox/Header"]
 layout_mode = 2
-
-[node name="TypeLabel" type="Label" parent="TurretContainer/TurretIcon1/VBox"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 18
-text = "Turret Type:"
-horizontal_alignment = 1
-
-[node name="TypeValue" type="Label" parent="TurretContainer/TurretIcon1/VBox"]
-layout_mode = 2
+size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.3, 0.8, 1, 1)
-theme_override_font_sizes/font_size = 22
-text = "Basic"
+theme_override_font_sizes/font_size = 24
+text = "Turret"
 horizontal_alignment = 1
 
-[node name="RofContainer" type="HBoxContainer" parent="TurretContainer/TurretIcon1/VBox"]
-layout_mode = 2
-alignment = 1
-
-[node name="RofLabel" type="Label" parent="TurretContainer/TurretIcon1/VBox/RofContainer"]
+[node name="CloseButton" type="Button" parent="TurretPanel/VBox/Header"]
+custom_minimum_size = Vector2(30, 30)
 layout_mode = 2
 theme_override_font_sizes/font_size = 18
-text = "ROF:"
+text = "X"
 
-[node name="RofValue" type="Label" parent="TurretContainer/TurretIcon1/VBox/RofContainer"]
+[node name="Separator" type="HSeparator" parent="TurretPanel/VBox"]
+layout_mode = 2
+
+[node name="RofContainer" type="HBoxContainer" parent="TurretPanel/VBox"]
+layout_mode = 2
+
+[node name="RofLabel" type="Label" parent="TurretPanel/VBox/RofContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 20
+text = "Rate of Fire:"
+
+[node name="RofValue" type="Label" parent="TurretPanel/VBox/RofContainer"]
+custom_minimum_size = Vector2(50, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.8, 0.3, 1)
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 20
 text = "60"
+horizontal_alignment = 2
 
-[node name="RofUpgrade" type="Button" parent="TurretContainer/TurretIcon1/VBox/RofContainer"]
-custom_minimum_size = Vector2(30, 20)
+[node name="RofUpgrade" type="Button" parent="TurretPanel/VBox/RofContainer"]
+custom_minimum_size = Vector2(80, 30)
 layout_mode = 2
 theme_override_font_sizes/font_size = 18
-text = "+"
+text = "+ (5)"
 
-[node name="RofCost" type="Label" parent="TurretContainer/TurretIcon1/VBox/RofContainer"]
+[node name="TrackContainer" type="HBoxContainer" parent="TurretPanel/VBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.6, 0.6, 0.6, 1)
-theme_override_font_sizes/font_size = 18
-text = "(5)"
 
-[node name="TrackContainer" type="HBoxContainer" parent="TurretContainer/TurretIcon1/VBox"]
+[node name="TrackLabel" type="Label" parent="TurretPanel/VBox/TrackContainer"]
 layout_mode = 2
-alignment = 1
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 20
+text = "Tracking:"
 
-[node name="TrackLabel" type="Label" parent="TurretContainer/TurretIcon1/VBox/TrackContainer"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 18
-text = "TRK:"
-
-[node name="TrackValue" type="Label" parent="TurretContainer/TurretIcon1/VBox/TrackContainer"]
+[node name="TrackValue" type="Label" parent="TurretPanel/VBox/TrackContainer"]
+custom_minimum_size = Vector2(50, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.5, 1, 0.5, 1)
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 20
 text = "45"
+horizontal_alignment = 2
 
-[node name="TrackUpgrade" type="Button" parent="TurretContainer/TurretIcon1/VBox/TrackContainer"]
-custom_minimum_size = Vector2(30, 20)
+[node name="TrackUpgrade" type="Button" parent="TurretPanel/VBox/TrackContainer"]
+custom_minimum_size = Vector2(80, 30)
 layout_mode = 2
 theme_override_font_sizes/font_size = 18
-text = "+"
+text = "+ (5)"
 
-[node name="TrackCost" type="Label" parent="TurretContainer/TurretIcon1/VBox/TrackContainer"]
+[node name="Spacer" type="Control" parent="TurretPanel/VBox"]
+custom_minimum_size = Vector2(0, 10)
 layout_mode = 2
-theme_override_colors/font_color = Color(0.6, 0.6, 0.6, 1)
+
+[node name="ScrapLabel" type="Label" parent="TurretPanel/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.2, 1)
 theme_override_font_sizes/font_size = 18
-text = "(5)"
-
-[node name="TurretIcon2" type="PanelContainer" parent="TurretContainer"]
-custom_minimum_size = Vector2(120, 80)
-layout_mode = 2
-
-[node name="VBox" type="VBoxContainer" parent="TurretContainer/TurretIcon2"]
-layout_mode = 2
-
-[node name="TypeLabel" type="Label" parent="TurretContainer/TurretIcon2/VBox"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 18
-text = "Turret Type:"
+text = "Available Scrap: 0"
 horizontal_alignment = 1
-
-[node name="TypeValue" type="Label" parent="TurretContainer/TurretIcon2/VBox"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.3, 0.8, 1, 1)
-theme_override_font_sizes/font_size = 22
-text = "Basic"
-horizontal_alignment = 1
-
-[node name="RofContainer" type="HBoxContainer" parent="TurretContainer/TurretIcon2/VBox"]
-layout_mode = 2
-alignment = 1
-
-[node name="RofLabel" type="Label" parent="TurretContainer/TurretIcon2/VBox/RofContainer"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 18
-text = "ROF:"
-
-[node name="RofValue" type="Label" parent="TurretContainer/TurretIcon2/VBox/RofContainer"]
-layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.8, 0.3, 1)
-theme_override_font_sizes/font_size = 18
-text = "60"
-
-[node name="RofUpgrade" type="Button" parent="TurretContainer/TurretIcon2/VBox/RofContainer"]
-custom_minimum_size = Vector2(30, 20)
-layout_mode = 2
-theme_override_font_sizes/font_size = 18
-text = "+"
-
-[node name="RofCost" type="Label" parent="TurretContainer/TurretIcon2/VBox/RofContainer"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.6, 0.6, 0.6, 1)
-theme_override_font_sizes/font_size = 18
-text = "(5)"
-
-[node name="TrackContainer" type="HBoxContainer" parent="TurretContainer/TurretIcon2/VBox"]
-layout_mode = 2
-alignment = 1
-
-[node name="TrackLabel" type="Label" parent="TurretContainer/TurretIcon2/VBox/TrackContainer"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 18
-text = "TRK:"
-
-[node name="TrackValue" type="Label" parent="TurretContainer/TurretIcon2/VBox/TrackContainer"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.5, 1, 0.5, 1)
-theme_override_font_sizes/font_size = 18
-text = "45"
-
-[node name="TrackUpgrade" type="Button" parent="TurretContainer/TurretIcon2/VBox/TrackContainer"]
-custom_minimum_size = Vector2(30, 20)
-layout_mode = 2
-theme_override_font_sizes/font_size = 18
-text = "+"
-
-[node name="TrackCost" type="Label" parent="TurretContainer/TurretIcon2/VBox/TrackContainer"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.6, 0.6, 0.6, 1)
-theme_override_font_sizes/font_size = 18
-text = "(5)"
-
-[node name="TurretIcon3" type="PanelContainer" parent="TurretContainer"]
-custom_minimum_size = Vector2(120, 80)
-layout_mode = 2
-
-[node name="VBox" type="VBoxContainer" parent="TurretContainer/TurretIcon3"]
-layout_mode = 2
-
-[node name="TypeLabel" type="Label" parent="TurretContainer/TurretIcon3/VBox"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 18
-text = "Turret Type:"
-horizontal_alignment = 1
-
-[node name="TypeValue" type="Label" parent="TurretContainer/TurretIcon3/VBox"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.3, 0.8, 1, 1)
-theme_override_font_sizes/font_size = 22
-text = "Basic"
-horizontal_alignment = 1
-
-[node name="RofContainer" type="HBoxContainer" parent="TurretContainer/TurretIcon3/VBox"]
-layout_mode = 2
-alignment = 1
-
-[node name="RofLabel" type="Label" parent="TurretContainer/TurretIcon3/VBox/RofContainer"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 18
-text = "ROF:"
-
-[node name="RofValue" type="Label" parent="TurretContainer/TurretIcon3/VBox/RofContainer"]
-layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.8, 0.3, 1)
-theme_override_font_sizes/font_size = 18
-text = "60"
-
-[node name="RofUpgrade" type="Button" parent="TurretContainer/TurretIcon3/VBox/RofContainer"]
-custom_minimum_size = Vector2(30, 20)
-layout_mode = 2
-theme_override_font_sizes/font_size = 18
-text = "+"
-
-[node name="RofCost" type="Label" parent="TurretContainer/TurretIcon3/VBox/RofContainer"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.6, 0.6, 0.6, 1)
-theme_override_font_sizes/font_size = 18
-text = "(5)"
-
-[node name="TrackContainer" type="HBoxContainer" parent="TurretContainer/TurretIcon3/VBox"]
-layout_mode = 2
-alignment = 1
-
-[node name="TrackLabel" type="Label" parent="TurretContainer/TurretIcon3/VBox/TrackContainer"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 18
-text = "TRK:"
-
-[node name="TrackValue" type="Label" parent="TurretContainer/TurretIcon3/VBox/TrackContainer"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.5, 1, 0.5, 1)
-theme_override_font_sizes/font_size = 18
-text = "45"
-
-[node name="TrackUpgrade" type="Button" parent="TurretContainer/TurretIcon3/VBox/TrackContainer"]
-custom_minimum_size = Vector2(30, 20)
-layout_mode = 2
-theme_override_font_sizes/font_size = 18
-text = "+"
-
-[node name="TrackCost" type="Label" parent="TurretContainer/TurretIcon3/VBox/TrackContainer"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.6, 0.6, 0.6, 1)
-theme_override_font_sizes/font_size = 18
-text = "(5)"
-
-[node name="TurretIcon4" type="PanelContainer" parent="TurretContainer"]
-custom_minimum_size = Vector2(120, 80)
-layout_mode = 2
-
-[node name="VBox" type="VBoxContainer" parent="TurretContainer/TurretIcon4"]
-layout_mode = 2
-
-[node name="TypeLabel" type="Label" parent="TurretContainer/TurretIcon4/VBox"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 18
-text = "Turret Type:"
-horizontal_alignment = 1
-
-[node name="TypeValue" type="Label" parent="TurretContainer/TurretIcon4/VBox"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.3, 0.8, 1, 1)
-theme_override_font_sizes/font_size = 22
-text = "Basic"
-horizontal_alignment = 1
-
-[node name="RofContainer" type="HBoxContainer" parent="TurretContainer/TurretIcon4/VBox"]
-layout_mode = 2
-alignment = 1
-
-[node name="RofLabel" type="Label" parent="TurretContainer/TurretIcon4/VBox/RofContainer"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 18
-text = "ROF:"
-
-[node name="RofValue" type="Label" parent="TurretContainer/TurretIcon4/VBox/RofContainer"]
-layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.8, 0.3, 1)
-theme_override_font_sizes/font_size = 18
-text = "60"
-
-[node name="RofUpgrade" type="Button" parent="TurretContainer/TurretIcon4/VBox/RofContainer"]
-custom_minimum_size = Vector2(30, 20)
-layout_mode = 2
-theme_override_font_sizes/font_size = 18
-text = "+"
-
-[node name="RofCost" type="Label" parent="TurretContainer/TurretIcon4/VBox/RofContainer"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.6, 0.6, 0.6, 1)
-theme_override_font_sizes/font_size = 18
-text = "(5)"
-
-[node name="TrackContainer" type="HBoxContainer" parent="TurretContainer/TurretIcon4/VBox"]
-layout_mode = 2
-alignment = 1
-
-[node name="TrackLabel" type="Label" parent="TurretContainer/TurretIcon4/VBox/TrackContainer"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 18
-text = "TRK:"
-
-[node name="TrackValue" type="Label" parent="TurretContainer/TurretIcon4/VBox/TrackContainer"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.5, 1, 0.5, 1)
-theme_override_font_sizes/font_size = 18
-text = "45"
-
-[node name="TrackUpgrade" type="Button" parent="TurretContainer/TurretIcon4/VBox/TrackContainer"]
-custom_minimum_size = Vector2(30, 20)
-layout_mode = 2
-theme_override_font_sizes/font_size = 18
-text = "+"
-
-[node name="TrackCost" type="Label" parent="TurretContainer/TurretIcon4/VBox/TrackContainer"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.6, 0.6, 0.6, 1)
-theme_override_font_sizes/font_size = 18
-text = "(5)"
-
-[node name="TurretIcon5" type="PanelContainer" parent="TurretContainer"]
-custom_minimum_size = Vector2(120, 80)
-layout_mode = 2
-
-[node name="VBox" type="VBoxContainer" parent="TurretContainer/TurretIcon5"]
-layout_mode = 2
-
-[node name="TypeLabel" type="Label" parent="TurretContainer/TurretIcon5/VBox"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 18
-text = "Turret Type:"
-horizontal_alignment = 1
-
-[node name="TypeValue" type="Label" parent="TurretContainer/TurretIcon5/VBox"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.3, 0.8, 1, 1)
-theme_override_font_sizes/font_size = 22
-text = "Basic"
-horizontal_alignment = 1
-
-[node name="RofContainer" type="HBoxContainer" parent="TurretContainer/TurretIcon5/VBox"]
-layout_mode = 2
-alignment = 1
-
-[node name="RofLabel" type="Label" parent="TurretContainer/TurretIcon5/VBox/RofContainer"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 18
-text = "ROF:"
-
-[node name="RofValue" type="Label" parent="TurretContainer/TurretIcon5/VBox/RofContainer"]
-layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.8, 0.3, 1)
-theme_override_font_sizes/font_size = 18
-text = "60"
-
-[node name="RofUpgrade" type="Button" parent="TurretContainer/TurretIcon5/VBox/RofContainer"]
-custom_minimum_size = Vector2(30, 20)
-layout_mode = 2
-theme_override_font_sizes/font_size = 18
-text = "+"
-
-[node name="RofCost" type="Label" parent="TurretContainer/TurretIcon5/VBox/RofContainer"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.6, 0.6, 0.6, 1)
-theme_override_font_sizes/font_size = 18
-text = "(5)"
-
-[node name="TrackContainer" type="HBoxContainer" parent="TurretContainer/TurretIcon5/VBox"]
-layout_mode = 2
-alignment = 1
-
-[node name="TrackLabel" type="Label" parent="TurretContainer/TurretIcon5/VBox/TrackContainer"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 18
-text = "TRK:"
-
-[node name="TrackValue" type="Label" parent="TurretContainer/TurretIcon5/VBox/TrackContainer"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.5, 1, 0.5, 1)
-theme_override_font_sizes/font_size = 18
-text = "45"
-
-[node name="TrackUpgrade" type="Button" parent="TurretContainer/TurretIcon5/VBox/TrackContainer"]
-custom_minimum_size = Vector2(30, 20)
-layout_mode = 2
-theme_override_font_sizes/font_size = 18
-text = "+"
-
-[node name="TrackCost" type="Label" parent="TurretContainer/TurretIcon5/VBox/TrackContainer"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.6, 0.6, 0.6, 1)
-theme_override_font_sizes/font_size = 18
-text = "(5)"
