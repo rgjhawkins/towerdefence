@@ -1,3 +1,4 @@
+class_name CollectorShip
 extends Node3D
 
 signal scrap_collected(amount: int)
@@ -5,6 +6,33 @@ signal health_changed(current: float, maximum: float)
 signal cargo_changed(current: int, capacity: int)
 signal cargo_unloaded(amount: int)
 signal destroyed()
+
+# Flying scrap animation constants
+const SCRAP_SPAWN_OFFSET := 0.3
+const FLYING_SCRAP_SPEED := 8.0
+const FLYING_SCRAP_ARC_HEIGHT := 1.0
+const FLYING_SCRAP_SIZE := Vector3(0.1, 0.1, 0.1)
+const SCRAP_SPIN_SPEED := Vector3(5.0, 7.0, 3.0)
+
+# Beam constants
+const BEAM_RADIUS := 0.02
+
+# Default positions (fallback if not assigned)
+const DEFAULT_PARKING_POS := Vector3(-5.0, 1, 0)
+const DEFAULT_INTAKE_POS := Vector3(0, 2.3, 0)
+
+# Inner class for flying scrap data - replaces Dictionary for type safety
+class FlyingScrapData:
+	var node: MeshInstance3D
+	var start: Vector3
+	var target: Vector3
+	var progress: float
+
+	func _init(n: MeshInstance3D, s: Vector3, t: Vector3) -> void:
+		node = n
+		start = s
+		target = t
+		progress = 0.0
 
 @export var max_health: float = 100.0
 @export var rotation_speed: float = 180.0  # Degrees per second
@@ -19,6 +47,10 @@ signal destroyed()
 @export var unload_range: float = 1.5  # Distance to parking bay to unload
 @export var unload_rate: float = 10.0  # Scrap unloaded per second
 
+# Optional node references - assign in editor for more flexibility
+@export var parking_bay_node: Node3D
+@export var intake_node: Node3D
+
 var velocity: Vector3 = Vector3.ZERO
 var is_thrusting: bool = false
 var is_tractoring: bool = false
@@ -26,12 +58,12 @@ var is_unloading: bool = false
 var health: float = 100.0
 var current_cargo: int = 0
 var unload_accumulator: float = 0.0
-var parking_bay_pos: Vector3 = Vector3(-5.0, 1, 0)  # Matches ParkingBay position in station
-var intake_pos: Vector3 = Vector3(0, 2.3, 0)  # Station scrap intake position
+var parking_bay_pos: Vector3 = DEFAULT_PARKING_POS
+var intake_pos: Vector3 = DEFAULT_INTAKE_POS
 var beam_lines: Array[MeshInstance3D] = []
 var beam_material: StandardMaterial3D
 var scrap_visual_material: StandardMaterial3D
-var flying_scrap: Array[Dictionary] = []  # {node: MeshInstance3D, start: Vector3, target: Vector3, progress: float}
+var flying_scrap: Array = []  # Array of FlyingScrapData
 
 @onready var engine_glow: CSGCylinder3D = $Ship/EngineGlow
 @onready var engine_glow_left: CSGCylinder3D = $Ship/EngineGlowLeft
@@ -43,6 +75,12 @@ func _ready() -> void:
 	health = max_health
 	health_changed.emit(health, max_health)
 	cargo_changed.emit(current_cargo, cargo_capacity)
+
+	# Get positions from nodes if assigned, otherwise use defaults
+	if parking_bay_node:
+		parking_bay_pos = parking_bay_node.global_position
+	if intake_node:
+		intake_pos = intake_node.global_position
 
 	# Create glowing blue beam material
 	beam_material = StandardMaterial3D.new()
@@ -164,8 +202,8 @@ func _update_beam_lines(targets: Array[Node3D]) -> void:
 	while beam_lines.size() < targets.size():
 		var beam := MeshInstance3D.new()
 		var cylinder := CylinderMesh.new()
-		cylinder.top_radius = 0.02
-		cylinder.bottom_radius = 0.02
+		cylinder.top_radius = BEAM_RADIUS
+		cylinder.bottom_radius = BEAM_RADIUS
 		cylinder.height = 1.0
 		cylinder.material = beam_material
 		beam.mesh = cylinder
@@ -219,56 +257,48 @@ func _process_unloading(delta: float) -> void:
 func _spawn_flying_scrap() -> void:
 	var scrap_mesh := MeshInstance3D.new()
 	var box := BoxMesh.new()
-	box.size = Vector3(0.1, 0.1, 0.1)
+	box.size = FLYING_SCRAP_SIZE
 	box.material = scrap_visual_material
 	scrap_mesh.mesh = box
 
 	# Start position with slight random offset from collector
 	var start_pos := global_position + Vector3(
-		randf_range(-0.3, 0.3),
-		randf_range(0, 0.3),
-		randf_range(-0.3, 0.3)
+		randf_range(-SCRAP_SPAWN_OFFSET, SCRAP_SPAWN_OFFSET),
+		randf_range(0, SCRAP_SPAWN_OFFSET),
+		randf_range(-SCRAP_SPAWN_OFFSET, SCRAP_SPAWN_OFFSET)
 	)
 	scrap_mesh.global_position = start_pos
 
 	get_tree().root.add_child(scrap_mesh)
 
-	flying_scrap.append({
-		"node": scrap_mesh,
-		"start": start_pos,
-		"target": intake_pos,
-		"progress": 0.0
-	})
+	var scrap_data := FlyingScrapData.new(scrap_mesh, start_pos, intake_pos)
+	flying_scrap.append(scrap_data)
 
 
 func _process_flying_scrap(delta: float) -> void:
-	var scrap_speed := 8.0
 	var to_remove: Array[int] = []
 
 	for i in range(flying_scrap.size()):
-		var scrap_data: Dictionary = flying_scrap[i]
-		var node: MeshInstance3D = scrap_data["node"]
-		var start: Vector3 = scrap_data["start"]
-		var target: Vector3 = scrap_data["target"]
+		var scrap_data: FlyingScrapData = flying_scrap[i]
 
 		# Move progress based on distance and speed
-		var total_dist := start.distance_to(target)
-		scrap_data["progress"] += (scrap_speed / total_dist) * delta
+		var total_dist := scrap_data.start.distance_to(scrap_data.target)
+		scrap_data.progress += (FLYING_SCRAP_SPEED / total_dist) * delta
 
-		if scrap_data["progress"] >= 1.0:
+		if scrap_data.progress >= 1.0:
 			# Reached destination
-			node.queue_free()
+			scrap_data.node.queue_free()
 			to_remove.append(i)
 		else:
 			# Interpolate position with slight arc
-			var t: float = scrap_data["progress"]
-			var arc_height := 1.0 * sin(t * PI)  # Arc upward
-			var pos := start.lerp(target, t)
+			var t := scrap_data.progress
+			var arc_height := FLYING_SCRAP_ARC_HEIGHT * sin(t * PI)
+			var pos := scrap_data.start.lerp(scrap_data.target, t)
 			pos.y += arc_height
-			node.global_position = pos
+			scrap_data.node.global_position = pos
 
 			# Spin the scrap
-			node.rotation += Vector3(delta * 5, delta * 7, delta * 3)
+			scrap_data.node.rotation += SCRAP_SPIN_SPEED * delta
 
 	# Remove completed scrap (reverse order to maintain indices)
 	for i in range(to_remove.size() - 1, -1, -1):

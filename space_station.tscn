@@ -284,20 +284,20 @@ material = SubResource("LandingLightMaterial")
 [node name="ParkingPoint" type="Node3D" parent="ParkingBay"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
 
-[node name="Turret1" parent="." instance=ExtResource("2_turret")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.0, 1.15, 0)
+[node name="Turret" parent="TurretMount1" instance=ExtResource("2_turret")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.15, 0)
 
-[node name="Turret2" parent="." instance=ExtResource("2_turret")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.55, 1.15, 4.76)
+[node name="Turret" parent="TurretMount2" instance=ExtResource("2_turret")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.15, 0)
 
-[node name="Turret3" parent="." instance=ExtResource("2_turret")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.05, 1.15, 2.94)
+[node name="Turret" parent="TurretMount3" instance=ExtResource("2_turret")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.15, 0)
 
-[node name="Turret4" parent="." instance=ExtResource("2_turret")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.05, 1.15, -2.94)
+[node name="Turret" parent="TurretMount4" instance=ExtResource("2_turret")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.15, 0)
 
-[node name="Turret5" parent="." instance=ExtResource("2_turret")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.55, 1.15, -4.76)
+[node name="Turret" parent="TurretMount5" instance=ExtResource("2_turret")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.15, 0)
 
 [node name="Lights" type="Node3D" parent="."]
 

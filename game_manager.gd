@@ -1,4 +1,16 @@
+class_name GameManager
 extends Node3D
+
+# Spawn constants
+const FRIGATE_SPAWN_DISTANCE := 30.0
+const FRIGATE_SPAWN_HEIGHT := 1.0
+const BOMBER_SPAWN_DISTANCE := 35.0
+const BOMBER_SPAWN_HEIGHT := 1.5
+const BOMBER_ANGLE_SPACING := 0.15
+const COLLECTOR_SPAWN_POS := Vector3(-5.0, 1.5, 0)
+const COLLECTOR_SPAWN_ROTATION := PI / 2
+const LEVEL_TRANSITION_DELAY := 3.0
+const DEFAULT_STATION_RADIUS := 5.0
 
 @export var alien_scene: PackedScene
 @export var bomber_scene: PackedScene
@@ -8,10 +20,10 @@ var turrets: Array[Turret] = []
 var enemies: Array = []  # All enemies (MissileFrigate, Bomber, etc.)
 var _f11_held: bool = false
 var camera: Camera3D = null
-var hud: Node = null
+var hud: CanvasLayer = null
 var collector_ship: Node3D = null
 var space_station: Node3D = null
-var level_manager: Node = null
+var level_manager: LevelManager = null
 
 
 func _ready() -> void:
@@ -25,15 +37,21 @@ func _ready() -> void:
 	# Get the camera
 	camera = get_viewport().get_camera_3d()
 
-	# Get the HUD
-	hud = get_parent().get_node_or_null("HUD")
+	# Get the HUD using group
+	hud = get_tree().get_first_node_in_group("hud") as CanvasLayer
+	if not hud:
+		# Fallback to path-based lookup
+		hud = get_parent().get_node_or_null("HUD")
 	if hud:
 		hud.turret_selected.connect(_on_turret_selected)
 		hud.turret_deselected.connect(_on_turret_deselected)
 		hud.turret_upgraded.connect(_on_turret_upgraded)
 
-	# Get the space station and connect its tractor beam
-	space_station = get_parent().get_node_or_null("SpaceStation")
+	# Get the space station using group
+	space_station = get_tree().get_first_node_in_group("space_station") as Node3D
+	if not space_station:
+		# Fallback to path-based lookup
+		space_station = get_parent().get_node_or_null("SpaceStation")
 	if space_station and space_station.has_signal("scrap_collected"):
 		space_station.scrap_collected.connect(_on_station_scrap_collected)
 
@@ -52,8 +70,7 @@ func _find_turrets(node: Node) -> void:
 
 
 func _setup_level_manager() -> void:
-	var LevelManagerScript = load("res://level_manager.gd")
-	level_manager = LevelManagerScript.new()
+	level_manager = LevelManager.new()
 	level_manager.game_manager = self
 	add_child(level_manager)
 
@@ -82,8 +99,10 @@ func _on_level_started(level_number: int, total_waves: int) -> void:
 func _on_level_completed(level_number: int) -> void:
 	print("Level %d completed!" % (level_number + 1))
 	# Auto-start next level after a brief pause
-	await get_tree().create_timer(3.0).timeout
-	level_manager.start_next_level()
+	var timer := get_tree().create_timer(LEVEL_TRANSITION_DELAY)
+	await timer.timeout
+	if level_manager and is_instance_valid(level_manager):
+		level_manager.start_next_level()
 
 
 func _on_all_levels_completed() -> void:
@@ -111,7 +130,7 @@ func spawn_frigate() -> void:
 		return
 
 	var alien := alien_scene.instantiate()
-	_setup_alien(alien, 30.0, 1.0)
+	_setup_alien(alien, FRIGATE_SPAWN_DISTANCE, FRIGATE_SPAWN_HEIGHT)
 
 
 func spawn_bomber_squadron(count: int = 3) -> void:
@@ -120,20 +139,18 @@ func spawn_bomber_squadron(count: int = 3) -> void:
 
 	# Pick a random angle for the squadron to enter from
 	var base_angle := randf() * TAU
-	var spawn_distance := 35.0
-	var angle_spacing := 0.15  # Angle offset between bombers (radians)
 
 	for i in count:
 		var bomber := bomber_scene.instantiate()
 		# Offset each bomber's angle so they trail behind each other
-		var bomber_angle := base_angle + (i * angle_spacing)
+		var bomber_angle := base_angle + (i * BOMBER_ANGLE_SPACING)
 		var spawn_pos := Vector3(
-			cos(bomber_angle) * spawn_distance,
-			1.5,
-			sin(bomber_angle) * spawn_distance
+			cos(bomber_angle) * BOMBER_SPAWN_DISTANCE,
+			BOMBER_SPAWN_HEIGHT,
+			sin(bomber_angle) * BOMBER_SPAWN_DISTANCE
 		)
 		bomber.global_position = spawn_pos
-		bomber.target_position = Vector3(0, 1, 0)
+		bomber.target_position = Vector3.ZERO
 		bomber.formation_angle = bomber_angle + PI  # Point toward center
 		bomber.add_to_group("aliens")
 		bomber.died.connect(_on_alien_died)
@@ -152,7 +169,7 @@ func _setup_alien(alien: Node3D, spawn_distance: float, height: float) -> void:
 		sin(angle) * spawn_distance
 	)
 	alien.global_position = spawn_pos
-	alien.target_position = Vector3(0, 1, 0)
+	alien.target_position = Vector3.ZERO
 
 	alien.died.connect(_on_alien_died)
 	alien.killed.connect(_on_alien_killed)
@@ -183,8 +200,8 @@ func _on_turret_deselected() -> void:
 func _spawn_collector() -> void:
 	if collector_scene:
 		collector_ship = collector_scene.instantiate()
-		collector_ship.global_position = Vector3(-5.0, 1.5, 0)
-		collector_ship.rotation.y = PI / 2
+		collector_ship.global_position = COLLECTOR_SPAWN_POS
+		collector_ship.rotation.y = COLLECTOR_SPAWN_ROTATION
 		collector_ship.health_changed.connect(_on_collector_health_changed)
 		collector_ship.cargo_changed.connect(_on_cargo_changed)
 		collector_ship.cargo_unloaded.connect(_on_cargo_unloaded)
@@ -221,9 +238,15 @@ func _on_turret_upgraded(index: int, stat: String, value: float) -> void:
 				turret.tracking_speed = value
 
 
+func _get_station_radius() -> float:
+	if space_station and "shield_radius" in space_station:
+		return space_station.shield_radius
+	return DEFAULT_STATION_RADIUS
+
+
 func _has_clear_shot(turret_pos: Vector3, alien_pos: Vector3) -> bool:
 	var station_pos := Vector3.ZERO
-	var station_radius := 5.0
+	var station_radius := _get_station_radius()
 
 	var to_alien := alien_pos - turret_pos
 	var distance_to_alien := to_alien.length()

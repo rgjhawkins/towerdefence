@@ -1,3 +1,4 @@
+class_name LevelManager
 extends Node
 
 signal level_started(level_number: int, total_waves: int)
@@ -6,12 +7,21 @@ signal wave_completed(wave_number: int)
 signal level_completed(level_number: int)
 signal all_levels_completed()
 
+# Ship type enum - replaces magic strings
+enum ShipType { FRIGATE, BOMBER }
+
+# Timing constants
+const DEFAULT_COMPLETION_DELAY := 60.0
+const LEVEL1_WAVE2_DELAY := 30.0
+const LEVEL2_WAVE2_DELAY := 20.0
+const LEVEL2_WAVE3_DELAY := 25.0
+
 # Ship spawn data within a wave
 class ShipSpawn:
-	var ship_type: String  # "frigate", "bomber"
+	var ship_type: int  # ShipType enum value
 	var count: int
 
-	func _init(type: String, amount: int) -> void:
+	func _init(type: int, amount: int) -> void:
 		ship_type = type
 		count = amount
 
@@ -23,8 +33,8 @@ class WaveData:
 	func _init(delay_seconds: float = 0.0) -> void:
 		delay = delay_seconds
 
-	func add_ships(type: String, count: int):
-		var spawn = ShipSpawn.new(type, count)
+	func add_ships(type: int, amount: int) -> WaveData:
+		var spawn = ShipSpawn.new(type, amount)
 		ships.append(spawn)
 		return self  # Allow chaining
 
@@ -33,7 +43,7 @@ class LevelData:
 	var waves: Array = []  # Array of WaveData
 	var completion_delay: float = 60.0  # Wait after last wave to complete level
 
-	func add_wave(wave):
+	func add_wave(wave: WaveData) -> LevelData:
 		waves.append(wave)
 		return self  # Allow chaining
 
@@ -58,38 +68,38 @@ func _ready() -> void:
 func _define_levels() -> void:
 	# Level 1: 2 waves
 	var level1 = LevelData.new()
-	level1.completion_delay = 60.0
+	level1.completion_delay = DEFAULT_COMPLETION_DELAY
 
 	# Wave 1: 5 frigates, starts immediately
 	var wave1_1 = WaveData.new(0.0)
-	wave1_1.add_ships("frigate", 5)
+	wave1_1.add_ships(ShipType.FRIGATE, 5)
 	level1.add_wave(wave1_1)
 
 	# Wave 2: 2 bombers, starts 30s after wave 1
-	var wave1_2 = WaveData.new(30.0)
-	wave1_2.add_ships("bomber", 2)
+	var wave1_2 = WaveData.new(LEVEL1_WAVE2_DELAY)
+	wave1_2.add_ships(ShipType.BOMBER, 2)
 	level1.add_wave(wave1_2)
 
 	levels.append(level1)
 
 	# Level 2: More challenging
 	var level2 = LevelData.new()
-	level2.completion_delay = 60.0
+	level2.completion_delay = DEFAULT_COMPLETION_DELAY
 
 	# Wave 1: 3 frigates
 	var wave2_1 = WaveData.new(0.0)
-	wave2_1.add_ships("frigate", 3)
+	wave2_1.add_ships(ShipType.FRIGATE, 3)
 	level2.add_wave(wave2_1)
 
 	# Wave 2: 3 bombers after 20s
-	var wave2_2 = WaveData.new(20.0)
-	wave2_2.add_ships("bomber", 3)
+	var wave2_2 = WaveData.new(LEVEL2_WAVE2_DELAY)
+	wave2_2.add_ships(ShipType.BOMBER, 3)
 	level2.add_wave(wave2_2)
 
 	# Wave 3: Mixed wave - 4 frigates + 2 bombers after 25s
-	var wave2_3 = WaveData.new(25.0)
-	wave2_3.add_ships("frigate", 4)
-	wave2_3.add_ships("bomber", 2)
+	var wave2_3 = WaveData.new(LEVEL2_WAVE3_DELAY)
+	wave2_3.add_ships(ShipType.FRIGATE, 4)
+	wave2_3.add_ships(ShipType.BOMBER, 2)
 	level2.add_wave(wave2_3)
 
 	levels.append(level2)
@@ -146,17 +156,17 @@ func _process_wave_spawning(delta: float) -> void:
 		wave_started.emit(current_wave, level_data.waves.size())
 
 
-func _spawn_wave(wave_data) -> void:
+func _spawn_wave(wave_data: WaveData) -> void:
 	print("  Spawning Wave %d" % (current_wave + 1))
 
 	for ship_spawn in wave_data.ships:
 		match ship_spawn.ship_type:
-			"frigate":
+			ShipType.FRIGATE:
 				_spawn_frigates(ship_spawn.count)
-			"bomber":
+			ShipType.BOMBER:
 				_spawn_bombers(ship_spawn.count)
 			_:
-				push_warning("Unknown ship type: %s" % ship_spawn.ship_type)
+				push_warning("Unknown ship type: %d" % ship_spawn.ship_type)
 
 
 func _spawn_frigates(count: int) -> void:

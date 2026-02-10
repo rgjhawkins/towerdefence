@@ -1,3 +1,4 @@
+class_name HUD
 extends CanvasLayer
 
 signal turret_selected(index: int)
@@ -5,6 +6,24 @@ signal turret_deselected()
 signal turret_upgraded(index: int, stat: String, value: float)
 signal shield_hit()
 signal shield_regen()
+
+# Turret upgrade constants
+const TURRET_COUNT := 5
+const INITIAL_ROF_COST := 5
+const INITIAL_ROF_VALUE := 1.0  # Shots per second (60 RPM)
+const ROF_COST_INCREMENT := 5
+const ROF_VALUE_INCREMENT := 10.0 / 60.0  # 10 RPM per upgrade
+const INITIAL_TRACK_COST := 5
+const INITIAL_TRACK_VALUE := 45.0  # Degrees per second
+const TRACK_COST_INCREMENT := 5
+const TRACK_VALUE_INCREMENT := 5.0  # Degrees per upgrade
+
+# UI size constants
+const TURRET_ICON_NORMAL_SIZE := Vector2(120, 80)
+const TURRET_ICON_SELECTED_SIZE := Vector2(300, 400)
+
+# Shield constants
+const SHIELD_REGEN_PULSE_THRESHOLD := 1.0  # Pulse every 1 HP
 
 @onready var health_label: Label = $StationContainer/VBox/HealthLabel
 @onready var shield_label: Label = $StationContainer/VBox/ShieldLabel
@@ -15,6 +34,7 @@ signal shield_regen()
 @onready var level_label: Label = $LevelContainer/VBox/LevelLabel
 @onready var wave_label: Label = $LevelContainer/VBox/WaveLabel
 
+# Health values - could be moved to a StationHealth component in future refactor
 var station_health: float = 100.0
 var max_station_health: float = 100.0
 var shield_health: float = 100.0
@@ -28,19 +48,38 @@ var cargo_current: int = 0
 var cargo_capacity: int = 50
 var selected_turret_index: int = -1
 var turret_icon_nodes: Array[PanelContainer] = []
-var turret_rof_costs: Array[int] = [5, 5, 5, 5, 5]
-var turret_rof_values: Array[float] = [1.0, 1.0, 1.0, 1.0, 1.0]
-var turret_track_costs: Array[int] = [5, 5, 5, 5, 5]
-var turret_track_values: Array[float] = [45.0, 45.0, 45.0, 45.0, 45.0]
+var turret_rof_costs: Array[int] = []
+var turret_rof_values: Array[float] = []
+var turret_track_costs: Array[int] = []
+var turret_track_values: Array[float] = []
 
 
 func _ready() -> void:
+	# Add to group for easy lookup
+	add_to_group("hud")
+
+	# Initialize turret upgrade arrays
+	_init_turret_arrays()
+
 	update_health(station_health)
 	update_shield(shield_health)
 	update_collector_health(collector_health)
 	update_station_scrap(station_scrap)
 	update_cargo(cargo_current, cargo_capacity)
 	_setup_turret_icons()
+
+
+func _init_turret_arrays() -> void:
+	turret_rof_costs.resize(TURRET_COUNT)
+	turret_rof_values.resize(TURRET_COUNT)
+	turret_track_costs.resize(TURRET_COUNT)
+	turret_track_values.resize(TURRET_COUNT)
+
+	for i in TURRET_COUNT:
+		turret_rof_costs[i] = INITIAL_ROF_COST
+		turret_rof_values[i] = INITIAL_ROF_VALUE
+		turret_track_costs[i] = INITIAL_TRACK_COST
+		turret_track_values[i] = INITIAL_TRACK_VALUE
 
 
 func _process(delta: float) -> void:
@@ -53,13 +92,13 @@ func _process(delta: float) -> void:
 
 		# Pulse every 1 HP recovered
 		shield_regen_accumulator += regen_amount
-		if shield_regen_accumulator >= 1.0:
-			shield_regen_accumulator -= 1.0
+		if shield_regen_accumulator >= SHIELD_REGEN_PULSE_THRESHOLD:
+			shield_regen_accumulator -= SHIELD_REGEN_PULSE_THRESHOLD
 			shield_regen.emit()
 
 
 func _setup_turret_icons() -> void:
-	for i in range(1, 6):
+	for i in range(1, TURRET_COUNT + 1):
 		var icon: PanelContainer = turret_icons.get_node("TurretIcon%d" % i)
 		turret_icon_nodes.append(icon)
 		icon.gui_input.connect(_on_turret_icon_input.bind(i - 1))
@@ -82,14 +121,14 @@ func _on_rof_upgrade_pressed(index: int) -> void:
 		station_scrap -= cost
 		update_station_scrap(station_scrap)
 
-		# Increase ROF by 10 RPM (10/60 shots per second)
-		turret_rof_values[index] += 10.0 / 60.0
+		# Increase ROF
+		turret_rof_values[index] += ROF_VALUE_INCREMENT
 
 		# Update display
 		_update_turret_rof_display(index)
 
-		# Increase next cost by 5
-		turret_rof_costs[index] += 5
+		# Increase next cost
+		turret_rof_costs[index] += ROF_COST_INCREMENT
 		_update_turret_rof_cost_display(index)
 
 		# Emit signal to update actual turret
@@ -118,14 +157,14 @@ func _on_track_upgrade_pressed(index: int) -> void:
 		station_scrap -= cost
 		update_station_scrap(station_scrap)
 
-		# Increase tracking speed by 5 degrees/sec
-		turret_track_values[index] += 5.0
+		# Increase tracking speed
+		turret_track_values[index] += TRACK_VALUE_INCREMENT
 
 		# Update display
 		_update_turret_track_display(index)
 
-		# Increase next cost by 5
-		turret_track_costs[index] += 5
+		# Increase next cost
+		turret_track_costs[index] += TRACK_COST_INCREMENT
 		_update_turret_track_cost_display(index)
 
 		# Emit signal to update actual turret
@@ -154,7 +193,7 @@ func select_turret(index: int) -> void:
 	# Deselect previous
 	if selected_turret_index >= 0 and selected_turret_index < turret_icon_nodes.size():
 		var prev_icon := turret_icon_nodes[selected_turret_index]
-		prev_icon.custom_minimum_size = Vector2(120, 80)
+		prev_icon.custom_minimum_size = TURRET_ICON_NORMAL_SIZE
 		prev_icon.size_flags_vertical = Control.SIZE_FILL
 
 	# Select new (or deselect if same)
@@ -164,7 +203,7 @@ func select_turret(index: int) -> void:
 	else:
 		selected_turret_index = index
 		var icon := turret_icon_nodes[index]
-		icon.custom_minimum_size = Vector2(300, 400)
+		icon.custom_minimum_size = TURRET_ICON_SELECTED_SIZE
 		icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		turret_selected.emit(index)
 
