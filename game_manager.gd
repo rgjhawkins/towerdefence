@@ -183,7 +183,7 @@ func _on_turret_deselected() -> void:
 func _spawn_collector() -> void:
 	if collector_scene:
 		collector_ship = collector_scene.instantiate()
-		collector_ship.global_position = Vector3(-6.5, 1, 0)
+		collector_ship.global_position = Vector3(-5.0, 1.5, 0)
 		collector_ship.rotation.y = PI / 2
 		collector_ship.health_changed.connect(_on_collector_health_changed)
 		collector_ship.cargo_changed.connect(_on_cargo_changed)

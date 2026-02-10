@@ -14,7 +14,7 @@ signal destroyed()
 @export var tractor_range: float = 2.5  # Range to start pulling scrap
 @export var tractor_power: float = 8.0  # Pull speed
 @export var collect_distance: float = 0.5  # Distance to collect scrap
-@export var station_radius: float = 6.0  # Keep away from station center
+@export var shield_radius: float = 3.0  # Keep away from station shield
 @export var cargo_capacity: int = 50  # Max scrap the collector can hold
 @export var unload_range: float = 1.5  # Distance to parking bay to unload
 @export var unload_rate: float = 10.0  # Scrap unloaded per second
@@ -26,7 +26,7 @@ var is_unloading: bool = false
 var health: float = 100.0
 var current_cargo: int = 0
 var unload_accumulator: float = 0.0
-var parking_bay_pos: Vector3 = Vector3(-6.5, 1, 0)  # Matches ParkingBay position in station
+var parking_bay_pos: Vector3 = Vector3(-5.0, 1, 0)  # Matches ParkingBay position in station
 var intake_pos: Vector3 = Vector3(0, 2.3, 0)  # Station scrap intake position
 var beam_lines: Array[MeshInstance3D] = []
 var beam_material: StandardMaterial3D
@@ -106,19 +106,17 @@ func _apply_physics(delta: float) -> void:
 	# Apply movement
 	position += velocity * delta
 
-	# Keep away from station (at origin)
-	var station_pos := Vector3.ZERO
-	var to_ship := Vector3(position.x, 0, position.z) - station_pos
+	# Keep away from station shield (at origin)
+	var to_ship := Vector3(position.x, 0, position.z)
 	var dist := to_ship.length()
-	if dist < station_radius:
-		# Push ship out to the edge
+	if dist < shield_radius:
 		var push_dir := to_ship.normalized()
-		position.x = push_dir.x * station_radius
-		position.z = push_dir.z * station_radius
-		# Kill velocity towards station
-		var vel_toward_station := velocity.dot(-push_dir)
-		if vel_toward_station > 0:
-			velocity += push_dir * vel_toward_station
+		position.x = push_dir.x * shield_radius
+		position.z = push_dir.z * shield_radius
+		# Kill velocity towards shield
+		var vel_toward_shield := velocity.dot(-push_dir)
+		if vel_toward_shield > 0:
+			velocity += push_dir * vel_toward_shield
 
 
 func _update_engine_glow() -> void:

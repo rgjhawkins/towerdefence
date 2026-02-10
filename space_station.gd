@@ -5,7 +5,7 @@ signal scrap_collected(amount: int)
 @export var tractor_range: float = 5.0  # Station radius
 @export var tractor_power: float = 6.0  # Pull speed
 @export var collect_distance: float = 0.8  # Distance to collect
-@export var shield_radius: float = 6.0  # Shield bubble size
+@export var shield_radius: float = 3.0  # Shield bubble size (covers central station only)
 @export var shield_flash_duration: float = 0.3  # How long flash lasts
 
 var beam_lines: Array[MeshInstance3D] = []
