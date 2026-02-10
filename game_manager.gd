@@ -3,21 +3,15 @@ extends Node3D
 @export var alien_scene: PackedScene
 @export var bomber_scene: PackedScene
 @export var collector_scene: PackedScene
-@export var spawn_rate: float = 1.0  # Aliens per second
-@export var max_aliens: int = 5  # Maximum missile frigates
-@export var bomber_squad_size: int = 3  # Bombers per squadron
-@export var bomber_spawn_interval: float = 8.0  # Seconds between bomber squadrons
 
 var turrets: Array[Turret] = []
 var enemies: Array = []  # All enemies (MissileFrigate, Bomber, etc.)
-var total_aliens_spawned: int = 0
-var time_since_spawn: float = 0.0
-var time_since_bomber_spawn: float = 0.0
 var _f11_held: bool = false
 var camera: Camera3D = null
 var hud: Node = null
 var collector_ship: Node3D = null
 var space_station: Node3D = null
+var level_manager: Node = null
 
 
 func _ready() -> void:
@@ -46,8 +40,8 @@ func _ready() -> void:
 	# Spawn the collector ship at the hangar
 	_spawn_collector()
 
-	# Spawn initial bomber squadron
-	_spawn_bomber_squadron()
+	# Setup level manager
+	_setup_level_manager()
 
 
 func _find_turrets(node: Node) -> void:
@@ -57,7 +51,46 @@ func _find_turrets(node: Node) -> void:
 		_find_turrets(child)
 
 
-func _process(delta: float) -> void:
+func _setup_level_manager() -> void:
+	var LevelManagerScript = load("res://level_manager.gd")
+	level_manager = LevelManagerScript.new()
+	level_manager.game_manager = self
+	add_child(level_manager)
+
+	# Connect level manager signals
+	level_manager.level_started.connect(_on_level_started)
+	level_manager.wave_started.connect(_on_wave_started)
+	level_manager.level_completed.connect(_on_level_completed)
+	level_manager.all_levels_completed.connect(_on_all_levels_completed)
+
+	# Start level 1
+	level_manager.start_level(0)
+
+
+func _on_wave_started(wave_number: int, total_waves: int) -> void:
+	print("Wave %d of %d started" % [wave_number, total_waves])
+	if hud:
+		hud.update_wave(wave_number, total_waves)
+
+
+func _on_level_started(level_number: int, total_waves: int) -> void:
+	if hud:
+		hud.update_level(level_number)
+		hud.update_wave(0, total_waves)
+
+
+func _on_level_completed(level_number: int) -> void:
+	print("Level %d completed!" % (level_number + 1))
+	# Auto-start next level after a brief pause
+	await get_tree().create_timer(3.0).timeout
+	level_manager.start_next_level()
+
+
+func _on_all_levels_completed() -> void:
+	print("Congratulations! All levels completed!")
+
+
+func _process(_delta: float) -> void:
 	if Input.is_action_just_pressed("ui_cancel"):
 		get_tree().quit()
 
@@ -70,32 +103,18 @@ func _process(delta: float) -> void:
 	elif not Input.is_physical_key_pressed(KEY_F11):
 		_f11_held = false
 
-	time_since_spawn += delta
-	time_since_bomber_spawn += delta
-
-	var spawn_interval := 1.0 / spawn_rate
-	if time_since_spawn >= spawn_interval and total_aliens_spawned < max_aliens:
-		_spawn_frigate()
-		time_since_spawn = 0.0
-
-	# Spawn bomber squadrons periodically
-	if time_since_bomber_spawn >= bomber_spawn_interval:
-		_spawn_bomber_squadron()
-		time_since_bomber_spawn = 0.0
-
 	_update_turret_targets()
 
 
-func _spawn_frigate() -> void:
+func spawn_frigate() -> void:
 	if alien_scene == null:
 		return
 
 	var alien := alien_scene.instantiate()
 	_setup_alien(alien, 30.0, 1.0)
-	total_aliens_spawned += 1
 
 
-func _spawn_bomber_squadron() -> void:
+func spawn_bomber_squadron(count: int = 3) -> void:
 	if bomber_scene == null:
 		return
 
@@ -104,7 +123,7 @@ func _spawn_bomber_squadron() -> void:
 	var spawn_distance := 35.0
 	var angle_spacing := 0.15  # Angle offset between bombers (radians)
 
-	for i in bomber_squad_size:
+	for i in count:
 		var bomber := bomber_scene.instantiate()
 		# Offset each bomber's angle so they trail behind each other
 		var bomber_angle := base_angle + (i * angle_spacing)

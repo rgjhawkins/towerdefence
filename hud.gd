@@ -11,6 +11,8 @@ signal shield_hit()
 @onready var collector_health_label: Label = $CollectorContainer/VBox/CollectorHealthLabel
 @onready var cargo_label: Label = $CollectorContainer/VBox/CargoLabel
 @onready var turret_icons: VBoxContainer = $TurretContainer
+@onready var level_label: Label = $LevelContainer/VBox/LevelLabel
+@onready var wave_label: Label = $LevelContainer/VBox/WaveLabel
 
 var station_health: float = 100.0
 var max_station_health: float = 100.0
@@ -223,3 +225,11 @@ func update_cargo(current: int, capacity: int) -> void:
 	cargo_current = current
 	cargo_capacity = capacity
 	cargo_label.text = "Cargo Hold: %d / %d" % [cargo_current, cargo_capacity]
+
+
+func update_level(level: int) -> void:
+	level_label.text = "Level %d" % level
+
+
+func update_wave(current_wave: int, total_waves: int) -> void:
+	wave_label.text = "Wave %d / %d" % [current_wave, total_waves]
