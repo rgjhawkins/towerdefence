@@ -3,8 +3,10 @@ extends CanvasLayer
 signal turret_selected(index: int)
 signal turret_deselected()
 signal turret_upgraded(index: int, stat: String, value: float)
+signal shield_hit()
 
 @onready var health_label: Label = $StationContainer/VBox/HealthLabel
+@onready var shield_label: Label = $StationContainer/VBox/ShieldLabel
 @onready var station_scrap_label: Label = $StationContainer/VBox/StationScrapLabel
 @onready var collector_health_label: Label = $CollectorContainer/VBox/CollectorHealthLabel
 @onready var cargo_label: Label = $CollectorContainer/VBox/CargoLabel
@@ -12,6 +14,9 @@ signal turret_upgraded(index: int, stat: String, value: float)
 
 var station_health: float = 100.0
 var max_station_health: float = 100.0
+var shield_health: float = 100.0
+var max_shield_health: float = 100.0
+var shield_regen_rate: float = 0.5  # HP per second
 var collector_health: float = 100.0
 var max_collector_health: float = 100.0
 var station_scrap: int = 0
@@ -27,10 +32,19 @@ var turret_track_values: Array[float] = [45.0, 45.0, 45.0, 45.0, 45.0]
 
 func _ready() -> void:
 	update_health(station_health)
+	update_shield(shield_health)
 	update_collector_health(collector_health)
 	update_station_scrap(station_scrap)
 	update_cargo(cargo_current, cargo_capacity)
 	_setup_turret_icons()
+
+
+func _process(delta: float) -> void:
+	# Regenerate shield
+	if shield_health < max_shield_health:
+		shield_health += shield_regen_rate * delta
+		shield_health = minf(shield_health, max_shield_health)
+		update_shield(shield_health)
 
 
 func _setup_turret_icons() -> void:
@@ -168,12 +182,27 @@ func _on_collector_destroyed() -> void:
 
 
 func take_damage(amount: float) -> void:
-	station_health -= amount
-	station_health = max(station_health, 0)
-	update_health(station_health)
+	# Shield absorbs damage first
+	if shield_health > 0:
+		var shield_damage := minf(amount, shield_health)
+		shield_health -= shield_damage
+		amount -= shield_damage
+		update_shield(shield_health)
+		shield_hit.emit()  # Trigger visual effect
 
-	if station_health <= 0:
-		_on_station_destroyed()
+	# Remaining damage goes to station
+	if amount > 0:
+		station_health -= amount
+		station_health = max(station_health, 0)
+		update_health(station_health)
+
+		if station_health <= 0:
+			_on_station_destroyed()
+
+
+func update_shield(health: float) -> void:
+	shield_health = health
+	shield_label.text = "Shield: %d / %d" % [int(shield_health), int(max_shield_health)]
 
 
 func _on_station_destroyed() -> void:

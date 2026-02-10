@@ -36,6 +36,13 @@ grow_horizontal = 0
 [node name="VBox" type="VBoxContainer" parent="StationContainer"]
 layout_mode = 2
 
+[node name="ShieldLabel" type="Label" parent="StationContainer/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.3, 0.7, 1, 1)
+theme_override_font_sizes/font_size = 24
+text = "Shield: 100 / 100"
+horizontal_alignment = 2
+
 [node name="HealthLabel" type="Label" parent="StationContainer/VBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.3, 1, 0.4, 1)
