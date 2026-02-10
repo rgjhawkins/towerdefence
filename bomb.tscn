@@ -1,0 +1,37 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://bomb.gd" id="1_bomb"]
+[ext_resource type="PackedScene" path="res://explosion.tscn" id="2_explosion"]
+
+[sub_resource type="StandardMaterial3D" id="BombMaterial"]
+albedo_color = Color(0.3, 0.3, 0.35, 1)
+metallic = 0.9
+roughness = 0.25
+
+[node name="Bomb" type="Node3D"]
+script = ExtResource("1_bomb")
+explosion_scene = ExtResource("2_explosion")
+
+[node name="Body" type="CSGCylinder3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0, -1, 0, 1, 0, 0, 0, 0)
+radius = 0.08
+height = 0.3
+sides = 8
+material = SubResource("BombMaterial")
+
+[node name="Nose" type="CSGSphere3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.15)
+radius = 0.08
+radial_segments = 8
+rings = 4
+material = SubResource("BombMaterial")
+
+[node name="Fins1" type="CSGBox3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.12)
+size = Vector3(0.02, 0.12, 0.08)
+material = SubResource("BombMaterial")
+
+[node name="Fins2" type="CSGBox3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.12)
+size = Vector3(0.12, 0.02, 0.08)
+material = SubResource("BombMaterial")

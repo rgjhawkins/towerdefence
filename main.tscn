@@ -1,4 +1,4 @@
-[gd_scene load_steps=18 format=3]
+[gd_scene load_steps=19 format=3]
 
 [ext_resource type="PackedScene" path="res://space_station.tscn" id="1_station"]
 [ext_resource type="PackedScene" path="res://turret.tscn" id="2_turret"]
@@ -6,6 +6,7 @@
 [ext_resource type="Script" path="res://game_manager.gd" id="4_gamemanager"]
 [ext_resource type="PackedScene" path="res://collector_ship.tscn" id="6_collector"]
 [ext_resource type="PackedScene" path="res://hud.tscn" id="5_hud"]
+[ext_resource type="PackedScene" path="res://bomber.tscn" id="7_bomber"]
 
 [sub_resource type="Shader" id="Shader_starfield"]
 code = "
@@ -277,6 +278,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.39, 1.0, -4.28)
 [node name="GameManager" type="Node3D" parent="."]
 script = ExtResource("4_gamemanager")
 alien_scene = ExtResource("3_alien")
+bomber_scene = ExtResource("7_bomber")
 collector_scene = ExtResource("6_collector")
 spawn_rate = 1.0
 
