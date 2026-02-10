@@ -11,10 +11,10 @@ signal all_levels_completed()
 enum ShipType { FRIGATE, BOMBER }
 
 # Timing constants
-const DEFAULT_COMPLETION_DELAY := 60.0
-const LEVEL1_WAVE2_DELAY := 30.0
-const LEVEL2_WAVE2_DELAY := 20.0
-const LEVEL2_WAVE3_DELAY := 25.0
+const DEFAULT_COMPLETION_DELAY := 30.0
+const LEVEL1_WAVE2_DELAY := 10.0
+const LEVEL2_WAVE2_DELAY := 10.0
+const LEVEL2_WAVE3_DELAY := 10.0
 
 # Ship spawn data within a wave
 class ShipSpawn:

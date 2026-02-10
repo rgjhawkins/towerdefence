@@ -21,14 +21,14 @@ alignment = 1
 [node name="LevelLabel" type="Label" parent="LevelContainer/VBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_font_sizes/font_size = 28
+theme_override_font_sizes/font_size = 36
 text = "Level 1"
 horizontal_alignment = 1
 
 [node name="WaveLabel" type="Label" parent="LevelContainer/VBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
-theme_override_font_sizes/font_size = 22
+theme_override_font_sizes/font_size = 26
 text = "Wave 1 / 2"
 horizontal_alignment = 1
 
@@ -43,13 +43,13 @@ layout_mode = 2
 [node name="CollectorHealthLabel" type="Label" parent="CollectorContainer/VBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.9, 0.7, 0.1, 1)
-theme_override_font_sizes/font_size = 24
+theme_override_font_sizes/font_size = 28
 text = "Collector: 100 / 100"
 
 [node name="CargoLabel" type="Label" parent="CollectorContainer/VBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.6, 0.8, 1, 1)
-theme_override_font_sizes/font_size = 24
+theme_override_font_sizes/font_size = 28
 text = "Cargo Hold: 0 / 50"
 
 [node name="StationContainer" type="MarginContainer" parent="."]
@@ -66,21 +66,21 @@ layout_mode = 2
 [node name="ShieldLabel" type="Label" parent="StationContainer/VBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.3, 0.7, 1, 1)
-theme_override_font_sizes/font_size = 24
+theme_override_font_sizes/font_size = 28
 text = "Shield: 100 / 100"
 horizontal_alignment = 2
 
 [node name="HealthLabel" type="Label" parent="StationContainer/VBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.3, 1, 0.4, 1)
-theme_override_font_sizes/font_size = 24
+theme_override_font_sizes/font_size = 28
 text = "Station: 100 / 100"
 horizontal_alignment = 2
 
 [node name="StationScrapLabel" type="Label" parent="StationContainer/VBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.85, 0.2, 1)
-theme_override_font_sizes/font_size = 24
+theme_override_font_sizes/font_size = 28
 text = "Station Scrap: 0"
 horizontal_alignment = 2
 
@@ -106,7 +106,7 @@ layout_mode = 2
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.3, 0.8, 1, 1)
-theme_override_font_sizes/font_size = 24
+theme_override_font_sizes/font_size = 28
 text = "Turret"
 horizontal_alignment = 1
 
@@ -125,14 +125,14 @@ layout_mode = 2
 [node name="RofLabel" type="Label" parent="TurretPanel/VBox/RofContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 20
+theme_override_font_sizes/font_size = 24
 text = "Rate of Fire:"
 
 [node name="RofValue" type="Label" parent="TurretPanel/VBox/RofContainer"]
-custom_minimum_size = Vector2(50, 0)
+custom_minimum_size = Vector2(60, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.8, 0.3, 1)
-theme_override_font_sizes/font_size = 20
+theme_override_font_sizes/font_size = 24
 text = "60"
 horizontal_alignment = 2
 
@@ -148,14 +148,14 @@ layout_mode = 2
 [node name="TrackLabel" type="Label" parent="TurretPanel/VBox/TrackContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 20
+theme_override_font_sizes/font_size = 24
 text = "Tracking:"
 
 [node name="TrackValue" type="Label" parent="TurretPanel/VBox/TrackContainer"]
-custom_minimum_size = Vector2(50, 0)
+custom_minimum_size = Vector2(60, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.5, 1, 0.5, 1)
-theme_override_font_sizes/font_size = 20
+theme_override_font_sizes/font_size = 24
 text = "45"
 horizontal_alignment = 2
 
@@ -175,3 +175,614 @@ theme_override_colors/font_color = Color(1, 0.85, 0.2, 1)
 theme_override_font_sizes/font_size = 18
 text = "Available Scrap: 0"
 horizontal_alignment = 1
+
+[node name="LevelCompleteScreen" type="ColorRect" parent="."]
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.05, 0.05, 0.1, 0.95)
+
+[node name="ScrollContainer" type="ScrollContainer" parent="LevelCompleteScreen"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 60.0
+offset_top = 40.0
+offset_right = -60.0
+offset_bottom = -40.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="MainVBox" type="VBoxContainer" parent="LevelCompleteScreen/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 32
+
+[node name="Header" type="VBoxContainer" parent="LevelCompleteScreen/ScrollContainer/MainVBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="TitleLabel" type="Label" parent="LevelCompleteScreen/ScrollContainer/MainVBox/Header"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.4, 1, 0.6, 1)
+theme_override_font_sizes/font_size = 56
+text = "Level 1 Complete!"
+horizontal_alignment = 1
+
+[node name="ScrapLabel" type="Label" parent="LevelCompleteScreen/ScrollContainer/MainVBox/Header"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.2, 1)
+theme_override_font_sizes/font_size = 36
+text = "Available Scrap: 0"
+horizontal_alignment = 1
+
+[node name="TurretsSection" type="VBoxContainer" parent="LevelCompleteScreen/ScrollContainer/MainVBox"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="SectionLabel" type="Label" parent="LevelCompleteScreen/ScrollContainer/MainVBox/TurretsSection"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.5, 0.7, 0.9, 1)
+theme_override_font_sizes/font_size = 28
+text = "TURRET UPGRADES"
+horizontal_alignment = 1
+
+[node name="TurretsContainer" type="HBoxContainer" parent="LevelCompleteScreen/ScrollContainer/MainVBox/TurretsSection"]
+layout_mode = 2
+theme_override_constants/separation = 24
+alignment = 1
+
+[node name="Turret1Panel" type="PanelContainer" parent="LevelCompleteScreen/ScrollContainer/MainVBox/TurretsSection/TurretsContainer"]
+layout_mode = 2
+
+[node name="Margin" type="MarginContainer" parent="LevelCompleteScreen/ScrollContainer/MainVBox/TurretsSection/TurretsContainer/Turret1Panel"]
+layout_mode = 2
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 20
+
+[node name="VBox" type="VBoxContainer" parent="LevelCompleteScreen/ScrollContainer/MainVBox/TurretsSection/TurretsContainer/Turret1Panel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Title" type="Label" parent="LevelCompleteScreen/ScrollContainer/MainVBox/TurretsSection/TurretsContainer/Turret1Panel/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.4, 0.85, 1, 1)
+theme_override_font_sizes/font_size = 24
+text = "Turret 1"
+horizontal_alignment = 1
+
+[node name="RofRow" type="HBoxContainer" parent="LevelCompleteScreen/ScrollContainer/MainVBox/TurretsSection/TurretsContainer/Turret1Panel/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Label" type="Label" parent="LevelCompleteScreen/ScrollContainer/MainVBox/TurretsSection/TurretsContainer/Turret1Panel/Margin/VBox/RofRow"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
+theme_override_font_sizes/font_size = 20
+text = "ROF:"
+
+[node name="Value" type="Label" parent="LevelCompleteScreen/ScrollContainer/MainVBox/TurretsSection/TurretsContainer/Turret1Panel/Margin/VBox/RofRow"]
+custom_minimum_size = Vector2(60, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.4, 1)
+theme_override_font_sizes/font_size = 20
+text = "60"
+horizontal_alignment = 2
+
+[node name="Upgrade" type="Button" parent="LevelCompleteScreen/ScrollContainer/MainVBox/TurretsSection/TurretsContainer/Turret1Panel/Margin/VBox/RofRow"]
+custom_minimum_size = Vector2(90, 40)
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "+ (5)"
+
+[node name="TrackRow" type="HBoxContainer" parent="LevelCompleteScreen/ScrollContainer/MainVBox/TurretsSection/TurretsContainer/Turret1Panel/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Label" type="Label" parent="LevelCompleteScreen/ScrollContainer/MainVBox/TurretsSection/TurretsContainer/Turret1Panel/Margin/VBox/TrackRow"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
+theme_override_font_sizes/font_size = 20
+text = "TRK:"
+
+[node name="Value" type="Label" parent="LevelCompleteScreen/ScrollContainer/MainVBox/TurretsSection/TurretsContainer/Turret1Panel/Margin/VBox/TrackRow"]
+custom_minimum_size = Vector2(60, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.5, 1, 0.6, 1)
+theme_override_font_sizes/font_size = 20
+text = "45"
+horizontal_alignment = 2
+
+[node name="Upgrade" type="Button" parent="LevelCompleteScreen/ScrollContainer/MainVBox/TurretsSection/TurretsContainer/Turret1Panel/Margin/VBox/TrackRow"]
+custom_minimum_size = Vector2(90, 40)
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "+ (5)"
+
+[node name="Turret2Panel" type="PanelContainer" parent="LevelCompleteScreen/ScrollContainer/MainVBox/TurretsSection/TurretsContainer"]
+layout_mode = 2
+
+[node name="Margin" type="MarginContainer" parent="LevelCompleteScreen/ScrollContainer/MainVBox/TurretsSection/TurretsContainer/Turret2Panel"]
+layout_mode = 2
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 20
+
+[node name="VBox" type="VBoxContainer" parent="LevelCompleteScreen/ScrollContainer/MainVBox/TurretsSection/TurretsContainer/Turret2Panel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Title" type="Label" parent="LevelCompleteScreen/ScrollContainer/MainVBox/TurretsSection/TurretsContainer/Turret2Panel/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.4, 0.85, 1, 1)
+theme_override_font_sizes/font_size = 24
+text = "Turret 2"
+horizontal_alignment = 1
+
+[node name="RofRow" type="HBoxContainer" parent="LevelCompleteScreen/ScrollContainer/MainVBox/TurretsSection/TurretsContainer/Turret2Panel/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Label" type="Label" parent="LevelCompleteScreen/ScrollContainer/MainVBox/TurretsSection/TurretsContainer/Turret2Panel/Margin/VBox/RofRow"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
+theme_override_font_sizes/font_size = 20
+text = "ROF:"
+
+[node name="Value" type="Label" parent="LevelCompleteScreen/ScrollContainer/MainVBox/TurretsSection/TurretsContainer/Turret2Panel/Margin/VBox/RofRow"]
+custom_minimum_size = Vector2(60, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.4, 1)
+theme_override_font_sizes/font_size = 20
+text = "60"
+horizontal_alignment = 2
+
+[node name="Upgrade" type="Button" parent="LevelCompleteScreen/ScrollContainer/MainVBox/TurretsSection/TurretsContainer/Turret2Panel/Margin/VBox/RofRow"]
+custom_minimum_size = Vector2(90, 40)
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "+ (5)"
+
+[node name="TrackRow" type="HBoxContainer" parent="LevelCompleteScreen/ScrollContainer/MainVBox/TurretsSection/TurretsContainer/Turret2Panel/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Label" type="Label" parent="LevelCompleteScreen/ScrollContainer/MainVBox/TurretsSection/TurretsContainer/Turret2Panel/Margin/VBox/TrackRow"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
+theme_override_font_sizes/font_size = 20
+text = "TRK:"
+
+[node name="Value" type="Label" parent="LevelCompleteScreen/ScrollContainer/MainVBox/TurretsSection/TurretsContainer/Turret2Panel/Margin/VBox/TrackRow"]
+custom_minimum_size = Vector2(60, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.5, 1, 0.6, 1)
+theme_override_font_sizes/font_size = 20
+text = "45"
+horizontal_alignment = 2
+
+[node name="Upgrade" type="Button" parent="LevelCompleteScreen/ScrollContainer/MainVBox/TurretsSection/TurretsContainer/Turret2Panel/Margin/VBox/TrackRow"]
+custom_minimum_size = Vector2(90, 40)
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "+ (5)"
+
+[node name="Turret3Panel" type="PanelContainer" parent="LevelCompleteScreen/ScrollContainer/MainVBox/TurretsSection/TurretsContainer"]
+layout_mode = 2
+
+[node name="Margin" type="MarginContainer" parent="LevelCompleteScreen/ScrollContainer/MainVBox/TurretsSection/TurretsContainer/Turret3Panel"]
+layout_mode = 2
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 20
+
+[node name="VBox" type="VBoxContainer" parent="LevelCompleteScreen/ScrollContainer/MainVBox/TurretsSection/TurretsContainer/Turret3Panel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Title" type="Label" parent="LevelCompleteScreen/ScrollContainer/MainVBox/TurretsSection/TurretsContainer/Turret3Panel/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.4, 0.85, 1, 1)
+theme_override_font_sizes/font_size = 24
+text = "Turret 3"
+horizontal_alignment = 1
+
+[node name="RofRow" type="HBoxContainer" parent="LevelCompleteScreen/ScrollContainer/MainVBox/TurretsSection/TurretsContainer/Turret3Panel/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Label" type="Label" parent="LevelCompleteScreen/ScrollContainer/MainVBox/TurretsSection/TurretsContainer/Turret3Panel/Margin/VBox/RofRow"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
+theme_override_font_sizes/font_size = 20
+text = "ROF:"
+
+[node name="Value" type="Label" parent="LevelCompleteScreen/ScrollContainer/MainVBox/TurretsSection/TurretsContainer/Turret3Panel/Margin/VBox/RofRow"]
+custom_minimum_size = Vector2(60, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.4, 1)
+theme_override_font_sizes/font_size = 20
+text = "60"
+horizontal_alignment = 2
+
+[node name="Upgrade" type="Button" parent="LevelCompleteScreen/ScrollContainer/MainVBox/TurretsSection/TurretsContainer/Turret3Panel/Margin/VBox/RofRow"]
+custom_minimum_size = Vector2(90, 40)
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "+ (5)"
+
+[node name="TrackRow" type="HBoxContainer" parent="LevelCompleteScreen/ScrollContainer/MainVBox/TurretsSection/TurretsContainer/Turret3Panel/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Label" type="Label" parent="LevelCompleteScreen/ScrollContainer/MainVBox/TurretsSection/TurretsContainer/Turret3Panel/Margin/VBox/TrackRow"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
+theme_override_font_sizes/font_size = 20
+text = "TRK:"
+
+[node name="Value" type="Label" parent="LevelCompleteScreen/ScrollContainer/MainVBox/TurretsSection/TurretsContainer/Turret3Panel/Margin/VBox/TrackRow"]
+custom_minimum_size = Vector2(60, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.5, 1, 0.6, 1)
+theme_override_font_sizes/font_size = 20
+text = "45"
+horizontal_alignment = 2
+
+[node name="Upgrade" type="Button" parent="LevelCompleteScreen/ScrollContainer/MainVBox/TurretsSection/TurretsContainer/Turret3Panel/Margin/VBox/TrackRow"]
+custom_minimum_size = Vector2(90, 40)
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "+ (5)"
+
+[node name="Turret4Panel" type="PanelContainer" parent="LevelCompleteScreen/ScrollContainer/MainVBox/TurretsSection/TurretsContainer"]
+layout_mode = 2
+
+[node name="Margin" type="MarginContainer" parent="LevelCompleteScreen/ScrollContainer/MainVBox/TurretsSection/TurretsContainer/Turret4Panel"]
+layout_mode = 2
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 20
+
+[node name="VBox" type="VBoxContainer" parent="LevelCompleteScreen/ScrollContainer/MainVBox/TurretsSection/TurretsContainer/Turret4Panel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Title" type="Label" parent="LevelCompleteScreen/ScrollContainer/MainVBox/TurretsSection/TurretsContainer/Turret4Panel/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.4, 0.85, 1, 1)
+theme_override_font_sizes/font_size = 24
+text = "Turret 4"
+horizontal_alignment = 1
+
+[node name="RofRow" type="HBoxContainer" parent="LevelCompleteScreen/ScrollContainer/MainVBox/TurretsSection/TurretsContainer/Turret4Panel/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Label" type="Label" parent="LevelCompleteScreen/ScrollContainer/MainVBox/TurretsSection/TurretsContainer/Turret4Panel/Margin/VBox/RofRow"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
+theme_override_font_sizes/font_size = 20
+text = "ROF:"
+
+[node name="Value" type="Label" parent="LevelCompleteScreen/ScrollContainer/MainVBox/TurretsSection/TurretsContainer/Turret4Panel/Margin/VBox/RofRow"]
+custom_minimum_size = Vector2(60, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.4, 1)
+theme_override_font_sizes/font_size = 20
+text = "60"
+horizontal_alignment = 2
+
+[node name="Upgrade" type="Button" parent="LevelCompleteScreen/ScrollContainer/MainVBox/TurretsSection/TurretsContainer/Turret4Panel/Margin/VBox/RofRow"]
+custom_minimum_size = Vector2(90, 40)
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "+ (5)"
+
+[node name="TrackRow" type="HBoxContainer" parent="LevelCompleteScreen/ScrollContainer/MainVBox/TurretsSection/TurretsContainer/Turret4Panel/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Label" type="Label" parent="LevelCompleteScreen/ScrollContainer/MainVBox/TurretsSection/TurretsContainer/Turret4Panel/Margin/VBox/TrackRow"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
+theme_override_font_sizes/font_size = 20
+text = "TRK:"
+
+[node name="Value" type="Label" parent="LevelCompleteScreen/ScrollContainer/MainVBox/TurretsSection/TurretsContainer/Turret4Panel/Margin/VBox/TrackRow"]
+custom_minimum_size = Vector2(60, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.5, 1, 0.6, 1)
+theme_override_font_sizes/font_size = 20
+text = "45"
+horizontal_alignment = 2
+
+[node name="Upgrade" type="Button" parent="LevelCompleteScreen/ScrollContainer/MainVBox/TurretsSection/TurretsContainer/Turret4Panel/Margin/VBox/TrackRow"]
+custom_minimum_size = Vector2(90, 40)
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "+ (5)"
+
+[node name="Turret5Panel" type="PanelContainer" parent="LevelCompleteScreen/ScrollContainer/MainVBox/TurretsSection/TurretsContainer"]
+layout_mode = 2
+
+[node name="Margin" type="MarginContainer" parent="LevelCompleteScreen/ScrollContainer/MainVBox/TurretsSection/TurretsContainer/Turret5Panel"]
+layout_mode = 2
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 20
+
+[node name="VBox" type="VBoxContainer" parent="LevelCompleteScreen/ScrollContainer/MainVBox/TurretsSection/TurretsContainer/Turret5Panel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Title" type="Label" parent="LevelCompleteScreen/ScrollContainer/MainVBox/TurretsSection/TurretsContainer/Turret5Panel/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.4, 0.85, 1, 1)
+theme_override_font_sizes/font_size = 24
+text = "Turret 5"
+horizontal_alignment = 1
+
+[node name="RofRow" type="HBoxContainer" parent="LevelCompleteScreen/ScrollContainer/MainVBox/TurretsSection/TurretsContainer/Turret5Panel/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Label" type="Label" parent="LevelCompleteScreen/ScrollContainer/MainVBox/TurretsSection/TurretsContainer/Turret5Panel/Margin/VBox/RofRow"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
+theme_override_font_sizes/font_size = 20
+text = "ROF:"
+
+[node name="Value" type="Label" parent="LevelCompleteScreen/ScrollContainer/MainVBox/TurretsSection/TurretsContainer/Turret5Panel/Margin/VBox/RofRow"]
+custom_minimum_size = Vector2(60, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.4, 1)
+theme_override_font_sizes/font_size = 20
+text = "60"
+horizontal_alignment = 2
+
+[node name="Upgrade" type="Button" parent="LevelCompleteScreen/ScrollContainer/MainVBox/TurretsSection/TurretsContainer/Turret5Panel/Margin/VBox/RofRow"]
+custom_minimum_size = Vector2(90, 40)
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "+ (5)"
+
+[node name="TrackRow" type="HBoxContainer" parent="LevelCompleteScreen/ScrollContainer/MainVBox/TurretsSection/TurretsContainer/Turret5Panel/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Label" type="Label" parent="LevelCompleteScreen/ScrollContainer/MainVBox/TurretsSection/TurretsContainer/Turret5Panel/Margin/VBox/TrackRow"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
+theme_override_font_sizes/font_size = 20
+text = "TRK:"
+
+[node name="Value" type="Label" parent="LevelCompleteScreen/ScrollContainer/MainVBox/TurretsSection/TurretsContainer/Turret5Panel/Margin/VBox/TrackRow"]
+custom_minimum_size = Vector2(60, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.5, 1, 0.6, 1)
+theme_override_font_sizes/font_size = 20
+text = "45"
+horizontal_alignment = 2
+
+[node name="Upgrade" type="Button" parent="LevelCompleteScreen/ScrollContainer/MainVBox/TurretsSection/TurretsContainer/Turret5Panel/Margin/VBox/TrackRow"]
+custom_minimum_size = Vector2(90, 40)
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "+ (5)"
+
+[node name="BottomSection" type="HBoxContainer" parent="LevelCompleteScreen/ScrollContainer/MainVBox"]
+layout_mode = 2
+theme_override_constants/separation = 48
+alignment = 1
+
+[node name="StationPanel" type="PanelContainer" parent="LevelCompleteScreen/ScrollContainer/MainVBox/BottomSection"]
+layout_mode = 2
+
+[node name="Margin" type="MarginContainer" parent="LevelCompleteScreen/ScrollContainer/MainVBox/BottomSection/StationPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 20
+
+[node name="VBox" type="VBoxContainer" parent="LevelCompleteScreen/ScrollContainer/MainVBox/BottomSection/StationPanel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Title" type="Label" parent="LevelCompleteScreen/ScrollContainer/MainVBox/BottomSection/StationPanel/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.4, 1, 0.6, 1)
+theme_override_font_sizes/font_size = 26
+text = "STATION"
+horizontal_alignment = 1
+
+[node name="HealthRow" type="HBoxContainer" parent="LevelCompleteScreen/ScrollContainer/MainVBox/BottomSection/StationPanel/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="Label" type="Label" parent="LevelCompleteScreen/ScrollContainer/MainVBox/BottomSection/StationPanel/Margin/VBox/HealthRow"]
+custom_minimum_size = Vector2(130, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
+theme_override_font_sizes/font_size = 20
+text = "Max Health:"
+
+[node name="Value" type="Label" parent="LevelCompleteScreen/ScrollContainer/MainVBox/BottomSection/StationPanel/Margin/VBox/HealthRow"]
+custom_minimum_size = Vector2(60, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.4, 1, 0.5, 1)
+theme_override_font_sizes/font_size = 20
+text = "100"
+horizontal_alignment = 2
+
+[node name="Upgrade" type="Button" parent="LevelCompleteScreen/ScrollContainer/MainVBox/BottomSection/StationPanel/Margin/VBox/HealthRow"]
+custom_minimum_size = Vector2(100, 40)
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "+ (10)"
+
+[node name="ShieldRow" type="HBoxContainer" parent="LevelCompleteScreen/ScrollContainer/MainVBox/BottomSection/StationPanel/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="Label" type="Label" parent="LevelCompleteScreen/ScrollContainer/MainVBox/BottomSection/StationPanel/Margin/VBox/ShieldRow"]
+custom_minimum_size = Vector2(130, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
+theme_override_font_sizes/font_size = 20
+text = "Max Shield:"
+
+[node name="Value" type="Label" parent="LevelCompleteScreen/ScrollContainer/MainVBox/BottomSection/StationPanel/Margin/VBox/ShieldRow"]
+custom_minimum_size = Vector2(60, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.4, 0.75, 1, 1)
+theme_override_font_sizes/font_size = 20
+text = "100"
+horizontal_alignment = 2
+
+[node name="Upgrade" type="Button" parent="LevelCompleteScreen/ScrollContainer/MainVBox/BottomSection/StationPanel/Margin/VBox/ShieldRow"]
+custom_minimum_size = Vector2(100, 40)
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "+ (10)"
+
+[node name="RegenRow" type="HBoxContainer" parent="LevelCompleteScreen/ScrollContainer/MainVBox/BottomSection/StationPanel/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="Label" type="Label" parent="LevelCompleteScreen/ScrollContainer/MainVBox/BottomSection/StationPanel/Margin/VBox/RegenRow"]
+custom_minimum_size = Vector2(130, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
+theme_override_font_sizes/font_size = 20
+text = "Shield Regen:"
+
+[node name="Value" type="Label" parent="LevelCompleteScreen/ScrollContainer/MainVBox/BottomSection/StationPanel/Margin/VBox/RegenRow"]
+custom_minimum_size = Vector2(60, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.6, 0.85, 1, 1)
+theme_override_font_sizes/font_size = 20
+text = "0.5"
+horizontal_alignment = 2
+
+[node name="Upgrade" type="Button" parent="LevelCompleteScreen/ScrollContainer/MainVBox/BottomSection/StationPanel/Margin/VBox/RegenRow"]
+custom_minimum_size = Vector2(100, 40)
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "+ (15)"
+
+[node name="CollectorPanel" type="PanelContainer" parent="LevelCompleteScreen/ScrollContainer/MainVBox/BottomSection"]
+layout_mode = 2
+
+[node name="Margin" type="MarginContainer" parent="LevelCompleteScreen/ScrollContainer/MainVBox/BottomSection/CollectorPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 20
+
+[node name="VBox" type="VBoxContainer" parent="LevelCompleteScreen/ScrollContainer/MainVBox/BottomSection/CollectorPanel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Title" type="Label" parent="LevelCompleteScreen/ScrollContainer/MainVBox/BottomSection/CollectorPanel/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.8, 0.2, 1)
+theme_override_font_sizes/font_size = 26
+text = "COLLECTOR"
+horizontal_alignment = 1
+
+[node name="HealthRow" type="HBoxContainer" parent="LevelCompleteScreen/ScrollContainer/MainVBox/BottomSection/CollectorPanel/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="Label" type="Label" parent="LevelCompleteScreen/ScrollContainer/MainVBox/BottomSection/CollectorPanel/Margin/VBox/HealthRow"]
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
+theme_override_font_sizes/font_size = 20
+text = "Max Health:"
+
+[node name="Value" type="Label" parent="LevelCompleteScreen/ScrollContainer/MainVBox/BottomSection/CollectorPanel/Margin/VBox/HealthRow"]
+custom_minimum_size = Vector2(60, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.8, 0.2, 1)
+theme_override_font_sizes/font_size = 20
+text = "100"
+horizontal_alignment = 2
+
+[node name="Upgrade" type="Button" parent="LevelCompleteScreen/ScrollContainer/MainVBox/BottomSection/CollectorPanel/Margin/VBox/HealthRow"]
+custom_minimum_size = Vector2(100, 40)
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "+ (10)"
+
+[node name="CargoRow" type="HBoxContainer" parent="LevelCompleteScreen/ScrollContainer/MainVBox/BottomSection/CollectorPanel/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="Label" type="Label" parent="LevelCompleteScreen/ScrollContainer/MainVBox/BottomSection/CollectorPanel/Margin/VBox/CargoRow"]
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
+theme_override_font_sizes/font_size = 20
+text = "Cargo Cap:"
+
+[node name="Value" type="Label" parent="LevelCompleteScreen/ScrollContainer/MainVBox/BottomSection/CollectorPanel/Margin/VBox/CargoRow"]
+custom_minimum_size = Vector2(60, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.6, 0.85, 1, 1)
+theme_override_font_sizes/font_size = 20
+text = "50"
+horizontal_alignment = 2
+
+[node name="Upgrade" type="Button" parent="LevelCompleteScreen/ScrollContainer/MainVBox/BottomSection/CollectorPanel/Margin/VBox/CargoRow"]
+custom_minimum_size = Vector2(100, 40)
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "+ (20)"
+
+[node name="SpeedRow" type="HBoxContainer" parent="LevelCompleteScreen/ScrollContainer/MainVBox/BottomSection/CollectorPanel/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="Label" type="Label" parent="LevelCompleteScreen/ScrollContainer/MainVBox/BottomSection/CollectorPanel/Margin/VBox/SpeedRow"]
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
+theme_override_font_sizes/font_size = 20
+text = "Speed:"
+
+[node name="Value" type="Label" parent="LevelCompleteScreen/ScrollContainer/MainVBox/BottomSection/CollectorPanel/Margin/VBox/SpeedRow"]
+custom_minimum_size = Vector2(60, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+theme_override_font_sizes/font_size = 20
+text = "12"
+horizontal_alignment = 2
+
+[node name="Upgrade" type="Button" parent="LevelCompleteScreen/ScrollContainer/MainVBox/BottomSection/CollectorPanel/Margin/VBox/SpeedRow"]
+custom_minimum_size = Vector2(100, 40)
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "+ (15)"
+
+[node name="ButtonContainer" type="HBoxContainer" parent="LevelCompleteScreen/ScrollContainer/MainVBox"]
+layout_mode = 2
+alignment = 1
+
+[node name="NextLevelButton" type="Button" parent="LevelCompleteScreen/ScrollContainer/MainVBox/ButtonContainer"]
+custom_minimum_size = Vector2(320, 70)
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+text = "Start Next Level"

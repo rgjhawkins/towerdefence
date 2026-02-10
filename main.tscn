@@ -1,10 +1,10 @@
-[gd_scene load_steps=18 format=3]
+[gd_scene format=3 uid="uid://btoaqgre5ipvb"]
 
 [ext_resource type="PackedScene" path="res://space_station.tscn" id="1_station"]
 [ext_resource type="PackedScene" path="res://alien.tscn" id="3_alien"]
-[ext_resource type="Script" path="res://game_manager.gd" id="4_gamemanager"]
-[ext_resource type="PackedScene" path="res://collector_ship.tscn" id="6_collector"]
+[ext_resource type="Script" uid="uid://dey2ybho8y5vs" path="res://game_manager.gd" id="4_gamemanager"]
 [ext_resource type="PackedScene" path="res://hud.tscn" id="5_hud"]
+[ext_resource type="PackedScene" path="res://collector_ship.tscn" id="6_collector"]
 [ext_resource type="PackedScene" path="res://bomber.tscn" id="7_bomber"]
 
 [sub_resource type="Shader" id="Shader_starfield"]
@@ -78,51 +78,11 @@ background_mode = 2
 sky = SubResource("Sky_space")
 ambient_light_source = 2
 ambient_light_color = Color(0.05, 0.05, 0.08, 1)
-ambient_light_energy = 0.3
+ambient_light_energy = 0.5
 tonemap_mode = 2
 glow_enabled = true
 glow_intensity = 0.5
 glow_bloom = 0.3
-ambient_light_energy = 0.5
-
-[sub_resource type="StandardMaterial3D" id="StarMaterial_close"]
-transparency = 1
-shading_mode = 0
-albedo_color = Color(1, 1, 1, 1)
-emission_enabled = true
-emission = Color(1, 1, 1, 1)
-emission_energy_multiplier = 2.0
-billboard_mode = 1
-
-[sub_resource type="StandardMaterial3D" id="StarMaterial_mid"]
-transparency = 1
-shading_mode = 0
-albedo_color = Color(0.8, 0.85, 1, 0.8)
-emission_enabled = true
-emission = Color(0.8, 0.85, 1, 1)
-emission_energy_multiplier = 1.5
-billboard_mode = 1
-
-[sub_resource type="StandardMaterial3D" id="StarMaterial_far"]
-transparency = 1
-shading_mode = 0
-albedo_color = Color(0.6, 0.65, 0.9, 0.5)
-emission_enabled = true
-emission = Color(0.6, 0.65, 0.9, 1)
-emission_energy_multiplier = 1.0
-billboard_mode = 1
-
-[sub_resource type="QuadMesh" id="QuadMesh_star_close"]
-material = SubResource("StarMaterial_close")
-size = Vector2(0.15, 0.15)
-
-[sub_resource type="QuadMesh" id="QuadMesh_star_mid"]
-material = SubResource("StarMaterial_mid")
-size = Vector2(0.08, 0.08)
-
-[sub_resource type="QuadMesh" id="QuadMesh_star_far"]
-material = SubResource("StarMaterial_far")
-size = Vector2(0.04, 0.04)
 
 [sub_resource type="GDScript" id="GDScript_starfield"]
 script/source = "extends Node3D
@@ -177,42 +137,71 @@ func _move_layer(layer: Array[MeshInstance3D], speed: float, delta: float) -> vo
 			star.position.x = randf_range(-spread_x, spread_x)
 "
 
-[node name="Main" type="Node3D"]
+[sub_resource type="StandardMaterial3D" id="StarMaterial_close"]
+transparency = 1
+shading_mode = 0
+billboard_mode = 1
 
-[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+[sub_resource type="QuadMesh" id="QuadMesh_star_close"]
+material = SubResource("StarMaterial_close")
+size = Vector2(0.15, 0.15)
+
+[sub_resource type="StandardMaterial3D" id="StarMaterial_mid"]
+transparency = 1
+shading_mode = 0
+albedo_color = Color(0.8, 0.85, 1, 0.8)
+billboard_mode = 1
+
+[sub_resource type="QuadMesh" id="QuadMesh_star_mid"]
+material = SubResource("StarMaterial_mid")
+size = Vector2(0.08, 0.08)
+
+[sub_resource type="StandardMaterial3D" id="StarMaterial_far"]
+transparency = 1
+shading_mode = 0
+albedo_color = Color(0.6, 0.65, 0.9, 0.5)
+billboard_mode = 1
+
+[sub_resource type="QuadMesh" id="QuadMesh_star_far"]
+material = SubResource("StarMaterial_far")
+size = Vector2(0.04, 0.04)
+
+[node name="Main" type="Node3D" unique_id=85713422]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=766786863]
 environment = SubResource("Environment_space")
 
-[node name="Camera3D" type="Camera3D" parent="."]
+[node name="Camera3D" type="Camera3D" parent="." unique_id=423244476]
 transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, 0, 45, 0)
 fov = 60.0
 
-[node name="ParallaxStarfield" type="Node3D" parent="."]
+[node name="ParallaxStarfield" type="Node3D" parent="." unique_id=1314827605]
 script = SubResource("GDScript_starfield")
 
-[node name="MeshClose" type="MeshInstance3D" parent="ParallaxStarfield"]
+[node name="MeshClose" type="MeshInstance3D" parent="ParallaxStarfield" unique_id=1562624399]
 visible = false
 mesh = SubResource("QuadMesh_star_close")
 
-[node name="MeshMid" type="MeshInstance3D" parent="ParallaxStarfield"]
+[node name="MeshMid" type="MeshInstance3D" parent="ParallaxStarfield" unique_id=1991149208]
 visible = false
 mesh = SubResource("QuadMesh_star_mid")
 
-[node name="MeshFar" type="MeshInstance3D" parent="ParallaxStarfield"]
+[node name="MeshFar" type="MeshInstance3D" parent="ParallaxStarfield" unique_id=288298766]
 visible = false
 mesh = SubResource("QuadMesh_star_far")
 
-[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=777023818]
 transform = Transform3D(0.866025, -0.353553, 0.353553, 0, 0.707107, 0.707107, -0.5, -0.612372, 0.612372, 0, 10, 10)
 light_color = Color(0.95, 0.95, 1, 1)
 light_energy = 1.2
 shadow_enabled = true
 
-[node name="SpaceStation" parent="." instance=ExtResource("1_station")]
+[node name="SpaceStation" parent="." unique_id=327290490 instance=ExtResource("1_station")]
 
-[node name="GameManager" type="Node3D" parent="."]
+[node name="GameManager" type="Node3D" parent="." unique_id=1673761791]
 script = ExtResource("4_gamemanager")
 alien_scene = ExtResource("3_alien")
 bomber_scene = ExtResource("7_bomber")
 collector_scene = ExtResource("6_collector")
 
-[node name="HUD" parent="." instance=ExtResource("5_hud")]
+[node name="HUD" parent="." unique_id=1518473459 instance=ExtResource("5_hud")]

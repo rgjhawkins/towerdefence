@@ -42,6 +42,9 @@ func _ready() -> void:
 	if not hud:
 		# Fallback to path-based lookup
 		hud = get_parent().get_node_or_null("HUD")
+	if hud:
+		hud.turrets = turrets
+		hud.next_level_requested.connect(_on_next_level_requested)
 
 	# Get the space station using group
 	space_station = get_tree().get_first_node_in_group("space_station") as Node3D
@@ -100,9 +103,12 @@ func _on_level_started(level_number: int, total_waves: int) -> void:
 
 func _on_level_completed(level_number: int) -> void:
 	print("Level %d completed!" % (level_number + 1))
-	# Auto-start next level after a brief pause
-	var timer := get_tree().create_timer(LEVEL_TRANSITION_DELAY)
-	await timer.timeout
+	# Show level complete screen for upgrades
+	if hud:
+		hud.show_level_complete(level_number + 1)
+
+
+func _on_next_level_requested() -> void:
 	if level_manager and is_instance_valid(level_manager):
 		level_manager.start_next_level()
 
@@ -196,6 +202,9 @@ func _spawn_collector() -> void:
 		collector_ship.cargo_changed.connect(_on_cargo_changed)
 		collector_ship.cargo_unloaded.connect(_on_cargo_unloaded)
 		add_child(collector_ship)
+		# Pass collector reference to HUD
+		if hud:
+			hud.collector_ship = collector_ship
 
 
 func _on_cargo_changed(current: int, capacity: int) -> void:
