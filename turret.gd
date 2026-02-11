@@ -139,11 +139,9 @@ func _fire() -> void:
 	bullet.damage = ammo_type.damage
 	bullet.direction = -barrel.global_transform.basis.z
 
-	# Position at muzzle
-	bullet.global_position = muzzle.global_position
-
-	# Add to scene tree
+	# Add to scene tree first, then position at muzzle
 	get_tree().root.add_child(bullet)
+	bullet.global_position = muzzle.global_position
 
 	fired.emit(bullet)
 

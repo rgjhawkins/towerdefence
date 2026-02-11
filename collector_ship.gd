@@ -267,9 +267,9 @@ func _spawn_flying_scrap() -> void:
 		randf_range(0, SCRAP_SPAWN_OFFSET),
 		randf_range(-SCRAP_SPAWN_OFFSET, SCRAP_SPAWN_OFFSET)
 	)
-	scrap_mesh.global_position = start_pos
 
 	get_tree().root.add_child(scrap_mesh)
+	scrap_mesh.global_position = start_pos
 
 	var scrap_data := FlyingScrapData.new(scrap_mesh, start_pos, intake_pos)
 	flying_scrap.append(scrap_data)

@@ -2,8 +2,6 @@ class_name MissileFrigate
 extends Alien
 ## Missile Frigate - Approaches station, stops at range, and fires guided missiles
 
-signal reached_station(alien: MissileFrigate, damage: float)
-
 @export var missile_scene: PackedScene
 @export var station_damage: float = 1.0
 @export var stop_distance_min: float = 18.0
@@ -54,9 +52,6 @@ func _on_process(delta: float) -> void:
 func _fire_missile() -> void:
 	if missile_scene:
 		var missile := missile_scene.instantiate()
-		# Launch from top of the ship (above the bridge)
-		var launch_offset := Vector3(0, 0.5, 0)
-		missile.global_position = global_position + launch_offset
 		missile.target_position = target_position
 
 		# Generate random launch direction within forward 180 degrees
@@ -73,3 +68,6 @@ func _fire_missile() -> void:
 
 		missile.launch_direction = launch_dir
 		get_tree().root.add_child(missile)
+		# Set position after adding to tree
+		var launch_offset := Vector3(0, 0.5, 0)
+		missile.global_position = global_position + launch_offset

@@ -157,7 +157,8 @@ func spawn_bomber_squadron(count: int = 3) -> void:
 			BOMBER_SPAWN_HEIGHT,
 			sin(bomber_angle) * BOMBER_SPAWN_DISTANCE
 		)
-		bomber.global_position = spawn_pos
+		# Set position before add_child so _ready() has correct position
+		bomber.position = spawn_pos
 		bomber.target_position = Vector3.ZERO
 		bomber.formation_angle = bomber_angle + PI  # Point toward center
 		bomber.add_to_group("aliens")
@@ -176,7 +177,8 @@ func _setup_alien(alien: Node3D, spawn_distance: float, height: float) -> void:
 		height,
 		sin(angle) * spawn_distance
 	)
-	alien.global_position = spawn_pos
+	# Set position before add_child so _ready() has correct position
+	alien.position = spawn_pos
 	alien.target_position = Vector3.ZERO
 
 	alien.died.connect(_on_alien_died)
@@ -196,7 +198,8 @@ func _on_alien_killed(_alien: Node3D, _scrap_value: int) -> void:
 func _spawn_collector() -> void:
 	if collector_scene:
 		collector_ship = collector_scene.instantiate()
-		collector_ship.global_position = COLLECTOR_SPAWN_POS
+		# Set position before add_child so _ready() has correct position
+		collector_ship.position = COLLECTOR_SPAWN_POS
 		collector_ship.rotation.y = COLLECTOR_SPAWN_ROTATION
 		collector_ship.health_changed.connect(_on_collector_health_changed)
 		collector_ship.cargo_changed.connect(_on_cargo_changed)
@@ -276,12 +279,16 @@ func _update_turret_targets() -> void:
 			if "is_alive" in enemy and enemy.is_alive and _is_on_screen(enemy.global_position) and _has_clear_shot(turret.global_position, enemy.global_position):
 				targeted_enemies.append(enemy)
 				continue
+			else:
+				turret.clear_target()
 
 		var station_pos := Vector3.ZERO
 		var closest_enemy: Node3D = null
 		var closest_dist := INF
 
 		for enemy in enemies:
+			if not is_instance_valid(enemy):
+				continue
 			if "is_alive" in enemy and enemy.is_alive and _is_on_screen(enemy.global_position):
 				if enemy not in targeted_enemies and _has_clear_shot(turret.global_position, enemy.global_position):
 					var dist := station_pos.distance_to(enemy.global_position)

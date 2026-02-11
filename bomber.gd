@@ -82,7 +82,6 @@ func _do_escape(delta: float) -> void:
 
 	# Smoothly face direction of travel
 	if velocity.length() > 0.1:
-		var look_target := global_position + velocity.normalized()
 		var current_forward := -global_transform.basis.z
 		var new_forward := current_forward.lerp(velocity.normalized(), turn_speed * delta).normalized()
 		look_at(global_position + new_forward, Vector3.UP)
@@ -104,6 +103,7 @@ func _pick_new_target_direction() -> void:
 func _fire_plasma() -> void:
 	if plasma_scene:
 		var plasma := plasma_scene.instantiate()
-		plasma.global_position = global_position
+		# Set position before add_child so _ready() calculates correct direction
+		plasma.position = global_position
 		plasma.target_position = target_position
 		get_tree().root.add_child(plasma)

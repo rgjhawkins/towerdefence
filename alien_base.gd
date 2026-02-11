@@ -45,26 +45,28 @@ func take_damage(amount: float) -> void:
 
 func die() -> void:
 	is_alive = false
-	_spawn_explosion()
-	_spawn_scrap()
+	var death_pos := global_position
+	_spawn_explosion(death_pos)
+	_spawn_scrap(death_pos)
 	died.emit(self)
 	queue_free()
 
 
-func _spawn_explosion() -> void:
+func _spawn_explosion(pos: Vector3) -> void:
 	if explosion_scene:
 		var explosion := explosion_scene.instantiate()
-		explosion.global_position = global_position
 		get_tree().root.add_child(explosion)
+		explosion.global_position = pos
 
 
-func _spawn_scrap() -> void:
+func _spawn_scrap(base_pos: Vector3) -> void:
 	if scrap_scene:
 		for i in scrap_count:
 			var scrap := scrap_scene.instantiate()
-			scrap.global_position = global_position + Vector3(
+			var spawn_pos := base_pos + Vector3(
 				randf_range(-0.5, 0.5),
 				randf_range(-0.2, 0.2),
 				randf_range(-0.5, 0.5)
 			)
 			get_tree().root.add_child(scrap)
+			scrap.global_position = spawn_pos

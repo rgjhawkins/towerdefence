@@ -3,7 +3,6 @@ extends Node
 
 signal level_started(level_number: int, total_waves: int)
 signal wave_started(wave_number: int, total_waves: int)
-signal wave_completed(wave_number: int)
 signal level_completed(level_number: int)
 signal all_levels_completed()
 
