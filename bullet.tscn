@@ -3,16 +3,18 @@
 [ext_resource type="Script" path="res://bullet.gd" id="1_bullet"]
 
 [sub_resource type="StandardMaterial3D" id="BulletMaterial"]
-albedo_color = Color(1, 1, 0.6, 1)
+albedo_color = Color(1, 1, 0.3, 1)
 emission_enabled = true
-emission = Color(1, 0.95, 0.4, 1)
-emission_energy_multiplier = 12.0
+emission = Color(1, 0.9, 0.2, 1)
+emission_energy_multiplier = 20.0
+shading_mode = 0
 
 [node name="Bullet" type="Node3D"]
 script = ExtResource("1_bullet")
 
-[node name="Mesh" type="CSGSphere3D" parent="."]
-radius = 0.075
-radial_segments = 8
-rings = 4
+[node name="Mesh" type="CSGCylinder3D" parent="."]
+radius = 0.05
+height = 0.5
+sides = 8
 material = SubResource("BulletMaterial")
+rotation = Vector3(1.5708, 0, 0)

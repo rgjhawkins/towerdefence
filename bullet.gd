@@ -9,6 +9,12 @@ var distance_traveled: float = 0.0
 var hit_radius: float = 0.5
 
 
+func _ready() -> void:
+	# Orient bullet along direction of travel
+	if direction.length() > 0.01:
+		look_at(global_position + direction, Vector3.UP)
+
+
 func _process(delta: float) -> void:
 	var movement := direction * speed * delta
 	position += movement
