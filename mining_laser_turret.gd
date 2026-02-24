@@ -26,10 +26,6 @@ func _ready() -> void:
 	_build_visuals()
 
 
-func _process(delta: float) -> void:
-	_update(delta)
-
-
 func _build_visuals() -> void:
 	_laser_material = StandardMaterial3D.new()
 	_laser_material.albedo_color = Color(1.0, 0.25, 0.05, 0.9)

@@ -65,7 +65,7 @@ func _build_shot_sound() -> AudioStreamWAV:
 	return wav
 
 
-func _process(delta: float) -> void:
+func _update(delta: float) -> void:
 	_time_since_shot += delta
 	_acquire_target()
 	if _target and is_instance_valid(_target):
@@ -93,35 +93,10 @@ func _acquire_target() -> void:
 
 
 func _lead_position() -> Vector3:
-	var target_pos := _target.global_position
-	var muzzle_pos := _muzzle.global_position
 	var target_vel := Vector3.ZERO
 	if "velocity" in _target:
 		target_vel = _target.velocity
-
-	var rel := target_pos - muzzle_pos
-	var a := target_vel.length_squared() - BULLET_SPEED * BULLET_SPEED
-	var b := 2.0 * rel.dot(target_vel)
-	var c := rel.length_squared()
-
-	var t := 0.0
-	if abs(a) < 0.001:
-		if abs(b) > 0.001:
-			t = -c / b
-	else:
-		var disc := b * b - 4.0 * a * c
-		if disc >= 0.0:
-			var sq := sqrt(disc)
-			var t1 := (-b - sq) / (2.0 * a)
-			var t2 := (-b + sq) / (2.0 * a)
-			if t1 > 0.0 and t2 > 0.0:
-				t = min(t1, t2)
-			elif t1 > 0.0:
-				t = t1
-			elif t2 > 0.0:
-				t = t2
-
-	return target_pos + target_vel * clamp(t, 0.0, 3.0)
+	return TurretUtils.lead_position(_muzzle.global_position, _target.global_position, target_vel, BULLET_SPEED)
 
 
 func _track_target(delta: float) -> void:

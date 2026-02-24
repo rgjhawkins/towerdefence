@@ -44,48 +44,10 @@ func _process(delta: float) -> void:
 
 
 func _calculate_lead_position() -> Vector3:
-	var target_pos := target.global_position
-	var muzzle_pos := muzzle.global_position
-	var bullet_speed := ammo_type.bullet_speed
-
-	# Get target velocity if available
-	var target_velocity := Vector3.ZERO
+	var target_vel := Vector3.ZERO
 	if "velocity" in target:
-		target_velocity = target.velocity
-
-	# Solve quadratic for intercept time
-	# |target_pos + target_velocity * t - muzzle_pos| = bullet_speed * t
-	var relative_pos := target_pos - muzzle_pos
-	var a := target_velocity.length_squared() - bullet_speed * bullet_speed
-	var b := 2.0 * relative_pos.dot(target_velocity)
-	var c := relative_pos.length_squared()
-
-	var intercept_time := 0.0
-
-	if abs(a) < 0.001:
-		# Linear case
-		if abs(b) > 0.001:
-			intercept_time = -c / b
-	else:
-		var discriminant := b * b - 4.0 * a * c
-		if discriminant >= 0:
-			var sqrt_disc := sqrt(discriminant)
-			var t1 := (-b - sqrt_disc) / (2.0 * a)
-			var t2 := (-b + sqrt_disc) / (2.0 * a)
-
-			# Pick smallest positive time
-			if t1 > 0 and t2 > 0:
-				intercept_time = min(t1, t2)
-			elif t1 > 0:
-				intercept_time = t1
-			elif t2 > 0:
-				intercept_time = t2
-
-	# Clamp intercept time to reasonable range
-	intercept_time = clamp(intercept_time, 0.0, 3.0)
-
-	# Calculate lead position
-	return target_pos + target_velocity * intercept_time
+		target_vel = target.velocity
+	return TurretUtils.lead_position(muzzle.global_position, target.global_position, target_vel, ammo_type.bullet_speed)
 
 
 func _track_target(delta: float) -> void:

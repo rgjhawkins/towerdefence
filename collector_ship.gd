@@ -243,38 +243,7 @@ func _process_tractor_beam(delta: float) -> void:
 
 
 func _update_beam_lines(targets: Array[Node3D]) -> void:
-	# Create more beam lines if needed
-	while beam_lines.size() < targets.size():
-		var beam := MeshInstance3D.new()
-		var cylinder := CylinderMesh.new()
-		cylinder.top_radius = BEAM_RADIUS
-		cylinder.bottom_radius = BEAM_RADIUS
-		cylinder.height = 1.0
-		cylinder.material = beam_material
-		beam.mesh = cylinder
-		add_child(beam)
-		beam_lines.append(beam)
-
-	# Update each beam line
-	for i in range(beam_lines.size()):
-		var beam := beam_lines[i]
-		if i < targets.size():
-			beam.visible = true
-			var target := targets[i]
-			var turret_pos := tractor_turret.global_position
-			var target_pos := target.global_position
-			var midpoint := (turret_pos + target_pos) / 2.0
-			var distance := turret_pos.distance_to(target_pos)
-
-			# Position at midpoint
-			beam.global_position = midpoint
-
-			# Orient to point at target, then scale — order matters: look_at resets scale
-			beam.look_at(target_pos, Vector3.UP)
-			beam.rotate_object_local(Vector3.RIGHT, PI / 2.0)
-			beam.scale = Vector3(1, distance, 1)
-		else:
-			beam.visible = false
+	TurretUtils.sync_beam_lines(beam_lines, targets, tractor_turret.global_position, beam_material, BEAM_RADIUS, self)
 
 
 func _process_unloading(delta: float) -> void:

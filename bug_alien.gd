@@ -3,16 +3,14 @@ extends OrganicAlien
 ## Hive-defender bug. Patrols around its home asteroid, attacks collectors that
 ## come too close, and returns home when the threat moves away.
 
-enum State { PATROLLING, ATTACKING, RETURNING, ATTACHED, BURSTING, ORBITING }
+enum State { ATTACKING, RETURNING, ATTACHED, BURSTING, ORBITING }
 
 const SPEED := 3.0
 const BURST_SPEED := 9.0   # Fast outward scatter on spawn
 const ORBIT_SPEED := 3.5   # Tangential speed while orbiting the asteroid
 const RETURN_SPEED := 5.0
 const ATTACH_DISTANCE := 0.6
-const ATTACK_RANGE := 8.0     # Collector within this distance of HOME triggers attack
 const ABANDON_RANGE := 12.0   # Collector beyond this distance of HOME → bugs retreat
-const PATROL_LIFETIME := 10.0 # Seconds before an unengaged bug returns and despawns
 const HOLE_IDLE_DIST := 1.5   # How close to hole before considered "at rest"
 const RETURN_TIMEOUT := 5.0   # Safety despawn if the bug can't find its hole in time
 const ERRATIC_WEIGHT := 0.5
@@ -26,7 +24,6 @@ var hole_marker: Node3D = null
 var _state: State = State.BURSTING
 var _home_pos: Vector3 = Vector3.ZERO
 var _home_initialized: bool = false
-var _patrol_timer: float = 0.0
 var _burst_dir: Vector3 = Vector3.ZERO
 var _burst_timer: float = 0.0
 var _orbit_timer: float = 0.0
@@ -69,9 +66,6 @@ func _on_process(delta: float) -> void:
 	match _state:
 		State.BURSTING:
 			_do_burst(delta)
-		State.PATROLLING:
-			_do_patrol(delta)
-			_check_for_threat()
 		State.ATTACKING:
 			_do_attack(delta)
 			_check_retreat()
@@ -100,34 +94,6 @@ func _do_burst(delta: float) -> void:
 	_burst_dir = _burst_dir.lerp(nudge, 2.0 * delta).normalized()
 	global_position += _burst_dir * BURST_SPEED * delta
 	_smooth_look_at(_burst_dir, delta)
-
-
-# --- Patrol ---
-
-func _do_patrol(delta: float) -> void:
-	_patrol_timer += delta
-	if _patrol_timer >= PATROL_LIFETIME:
-		_state = State.RETURNING
-		return
-
-	# Move toward hole; idle (bob gently) once close
-	var hole_pos := _get_hole_pos()
-	var to_hole := hole_pos - global_position
-	if to_hole.length() > HOLE_IDLE_DIST:
-		var move_dir := _get_move_dir_to(hole_pos)
-		global_position += move_dir * SPEED * delta
-		_smooth_look_at(move_dir, delta)
-	else:
-		# Gentle idle hover in place
-		global_position.y += sin(_age * 2.5) * 0.002
-
-
-func _check_for_threat() -> void:
-	var collector := _find_nearest_collector()
-	if not collector:
-		return
-	if _home_pos.distance_to(collector.global_position) < ATTACK_RANGE:
-		_state = State.ATTACKING
 
 
 # --- Attack ---
