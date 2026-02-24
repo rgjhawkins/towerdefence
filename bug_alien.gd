@@ -5,18 +5,21 @@ extends Alien
 
 enum State { SWARMING, ATTACHED }
 
-const SPEED := 8.0
+const SPEED := 3.0
 const ATTACH_DISTANCE := 0.6
-const WOBBLE_STRENGTH := 0.5
-const WOBBLE_FREQ := 3.0
+const ERRATIC_WEIGHT := 0.5       # 0 = pure homing, 1 = pure wander
+const WANDER_SHIFT_SPEED := 1.8   # How fast the random wander direction drifts
 
 var _state: State = State.SWARMING
 var _age: float = 0.0
 var _mesh: MeshInstance3D = null
+var _wander_dir: Vector3 = Vector3.ZERO
 
 
 func _on_ready() -> void:
 	_build_mesh()
+	# Seed a random initial wander direction so each bug diverges immediately
+	_wander_dir = Vector3(randf_range(-1, 1), randf_range(-0.3, 0.3), randf_range(-1, 1)).normalized()
 
 
 func _on_process(delta: float) -> void:
@@ -42,14 +45,13 @@ func _do_swarm(delta: float) -> void:
 		_attach(collector)
 		return
 
-	# Fly toward collector with a sine-wave wobble for organic feel
-	var dir := to_target.normalized()
-	var wobble_axis := dir.cross(Vector3.UP)
-	if wobble_axis.length() < 0.01:
-		wobble_axis = Vector3.RIGHT
-	wobble_axis = wobble_axis.normalized()
-	var wobble := wobble_axis * sin(_age * WOBBLE_FREQ) * WOBBLE_STRENGTH
-	var move_dir := (dir + wobble * delta).normalized()
+	# Smoothly drift the wander direction toward a new random target each frame
+	var random_nudge := Vector3(randf_range(-1, 1), randf_range(-0.3, 0.3), randf_range(-1, 1)).normalized()
+	_wander_dir = _wander_dir.lerp(random_nudge, WANDER_SHIFT_SPEED * delta).normalized()
+
+	# Blend homing direction with the erratic wander
+	var home_dir := to_target.normalized()
+	var move_dir := home_dir.lerp(_wander_dir, ERRATIC_WEIGHT).normalized()
 
 	global_position += move_dir * SPEED * delta
 
