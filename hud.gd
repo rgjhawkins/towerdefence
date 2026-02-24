@@ -1,7 +1,7 @@
 class_name HUD
 extends CanvasLayer
 
-signal turret_upgraded(turret: Turret, stat: String, value: float)
+signal turret_upgraded(turret: StationTurret, stat: String, value: float)
 signal shield_hit()
 signal shield_regen()
 
@@ -58,11 +58,11 @@ var cargo_capacity: int = 50
 var collector_max_speed: float = 12.0
 
 # Selected turret tracking
-var selected_turret: Turret = null
+var selected_turret: StationTurret = null
 var turret_upgrade_data: Dictionary = {}
 
 # References set by game manager
-var turrets: Array[Turret] = []
+var turrets: Array[StationTurret] = []
 var collector_ship: CollectorShip = null
 
 
@@ -93,13 +93,13 @@ func _process(delta: float) -> void:
 			shield_regen.emit()
 
 
-func _get_turret_data(turret: Turret) -> TurretUpgradeData:
+func _get_turret_data(turret: StationTurret) -> TurretUpgradeData:
 	if turret not in turret_upgrade_data:
 		turret_upgrade_data[turret] = TurretUpgradeData.new(INITIAL_ROF_COST, INITIAL_TRACK_COST)
 	return turret_upgrade_data[turret] as TurretUpgradeData
 
 
-func select_turret(turret: Turret) -> void:
+func select_turret(turret: StationTurret) -> void:
 	if selected_turret and is_instance_valid(selected_turret):
 		selected_turret.hide_selection()
 

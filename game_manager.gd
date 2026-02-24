@@ -6,7 +6,7 @@ const COLLECTOR_SPAWN_ROTATION := PI / 2
 
 @export var collector_scene: PackedScene
 
-var turrets: Array[Turret] = []
+var turrets: Array[StationTurret] = []
 var _f11_held: bool = false
 var camera: Camera3D = null
 var hud: HUD = null
@@ -38,14 +38,14 @@ func _ready() -> void:
 
 
 func _find_turrets(node: Node) -> void:
-	if node is Turret:
+	if node is StationTurret:
 		turrets.append(node)
 		node.clicked.connect(_on_turret_clicked)
 	for child in node.get_children():
 		_find_turrets(child)
 
 
-func _on_turret_clicked(turret: Turret) -> void:
+func _on_turret_clicked(turret: StationTurret) -> void:
 	if hud:
 		hud.select_turret(turret)
 

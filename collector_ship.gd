@@ -1,5 +1,5 @@
 class_name CollectorShip
-extends Node3D
+extends Ship
 
 signal scrap_collected(amount: int)
 signal health_changed(current: float, maximum: float)

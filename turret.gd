@@ -1,8 +1,8 @@
-class_name Turret
-extends Node3D
+class_name StationTurret
+extends Turret
 
 signal fired(bullet: Bullet)
-signal clicked(turret: Turret)
+signal clicked(turret: StationTurret)
 
 @export var rate_of_fire: float = 2.0  # Shots per second
 @export var tracking_speed: float = 180.0  # Degrees per second

@@ -1,5 +1,5 @@
 class_name MiningLaserTurret
-extends CollectorTurretBase
+extends Turret
 ## Collector hardpoint turret: auto-aims at the nearest asteroid and fires a
 ## continuous mining laser. Emits asteroid_mined when a scrap cycle completes.
 

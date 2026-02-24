@@ -1,8 +1,8 @@
-class_name CollectorTurretBase
+class_name Turret
 extends Node3D
-## Base class for all turrets mountable on the collector ship hardpoints.
-## Add a subclass as a child of a hardpoint Node3D to install it.
-## Remove and replace the child to swap turrets at runtime.
+## Base class for all turret types.
+## Collector hardpoint turrets extend this directly.
+## Scene-based station turrets extend StationTurret which extends this.
 
 ## Override to return the display name shown in the upgrade/swap UI.
 func get_turret_name() -> String:
