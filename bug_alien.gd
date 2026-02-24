@@ -9,6 +9,7 @@ const SPEED := 3.0
 const ATTACH_DISTANCE := 0.6
 const ERRATIC_WEIGHT := 0.5       # 0 = pure homing, 1 = pure wander
 const WANDER_SHIFT_SPEED := 1.8   # How fast the random wander direction drifts
+const CLOSE_DISTANCE := 5.0       # Within this range bugs fly straight at the collector
 
 var _state: State = State.SWARMING
 var _age: float = 0.0
@@ -49,9 +50,11 @@ func _do_swarm(delta: float) -> void:
 	var random_nudge := Vector3(randf_range(-1, 1), randf_range(-0.3, 0.3), randf_range(-1, 1)).normalized()
 	_wander_dir = _wander_dir.lerp(random_nudge, WANDER_SHIFT_SPEED * delta).normalized()
 
-	# Blend homing direction with the erratic wander
+	# Blend homing direction with the erratic wander.
+	# Erratic weight fades to zero as the bug closes in on the collector.
 	var home_dir := to_target.normalized()
-	var move_dir := home_dir.lerp(_wander_dir, ERRATIC_WEIGHT).normalized()
+	var erratic := ERRATIC_WEIGHT * clampf(dist / CLOSE_DISTANCE, 0.0, 1.0)
+	var move_dir := home_dir.lerp(_wander_dir, erratic).normalized()
 
 	global_position += move_dir * SPEED * delta
 
