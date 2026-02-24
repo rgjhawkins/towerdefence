@@ -1,5 +1,5 @@
 class_name MachinegunTurret
-extends Turret
+extends "res://collector_turret_base.gd"
 ## Collector hardpoint turret: auto-aims and fires tracer rounds at the nearest
 ## alien within range. Skips aliens that are already attached to this ship.
 
