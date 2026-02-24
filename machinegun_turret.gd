@@ -7,7 +7,7 @@ const BULLET_SCENE := preload("res://bullet.tscn")
 const BULLET_SPEED := 60.0
 const BULLET_MAX_DIST := 20.0
 
-@export var range: float = 8.0
+@export var target_range: float = 8.0
 const DAMAGE := 1.0
 const BARREL_LENGTH := 0.25
 const AIM_THRESHOLD := 5.0      # Degrees — must be this close to fire
@@ -75,7 +75,7 @@ func _update(delta: float) -> void:
 
 func _acquire_target() -> void:
 	var nearest: Node3D = null
-	var nearest_dist := range
+	var nearest_dist := target_range
 	for node in get_tree().get_nodes_in_group("aliens"):
 		var alien := node as Node3D
 		if not alien:
