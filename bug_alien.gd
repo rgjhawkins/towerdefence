@@ -12,6 +12,7 @@ const ATTACK_RANGE := 8.0     # Collector within this distance of HOME triggers 
 const ABANDON_RANGE := 12.0   # Collector beyond this distance of HOME → bugs retreat
 const PATROL_RADIUS := 3.0    # Orbit radius around asteroid
 const PATROL_SPEED := 0.8     # Orbit speed (radians per second)
+const PATROL_LIFETIME := 10.0 # Seconds before an unengaged bug returns and despawns
 const ERRATIC_WEIGHT := 0.5
 const WANDER_SHIFT_SPEED := 1.8
 const CLOSE_DISTANCE := 5.0   # Within this range bugs fly straight at collector
@@ -20,6 +21,8 @@ var _state: State = State.PATROLLING
 var _home_pos: Vector3 = Vector3.ZERO
 var _home_initialized: bool = false
 var _patrol_angle: float = 0.0
+var _patrol_timer: float = 0.0
+var _despawn_on_return: bool = false
 var _age: float = 0.0
 var _wander_dir: Vector3 = Vector3.ZERO
 var _mesh: MeshInstance3D = null
@@ -55,6 +58,12 @@ func _on_process(delta: float) -> void:
 # --- Patrol ---
 
 func _do_patrol(delta: float) -> void:
+	_patrol_timer += delta
+	if _patrol_timer >= PATROL_LIFETIME:
+		_despawn_on_return = true
+		_state = State.RETURNING
+		return
+
 	_patrol_angle += PATROL_SPEED * delta
 	var target := _home_pos + Vector3(
 		cos(_patrol_angle) * PATROL_RADIUS,
@@ -115,6 +124,9 @@ func _check_retreat() -> void:
 func _do_return(delta: float) -> void:
 	var to_home := _home_pos - global_position
 	if to_home.length() < 1.0:
+		if _despawn_on_return:
+			die()
+			return
 		_state = State.PATROLLING
 		return
 	var move_dir := to_home.normalized()
