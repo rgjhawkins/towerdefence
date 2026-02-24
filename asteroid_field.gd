@@ -114,5 +114,12 @@ func get_random_hole_position() -> Vector3:
 	return _hole_markers[randi() % _hole_markers.size()].global_position
 
 
+## Returns a random hole marker node (position updates live as asteroid rotates).
+func get_random_hole_marker() -> Node3D:
+	if _hole_markers.is_empty():
+		return null
+	return _hole_markers[randi() % _hole_markers.size()]
+
+
 func _process(delta: float) -> void:
 	_mesh.rotate(Vector3(0.3, 1.0, 0.2).normalized(), 0.5 * delta)

@@ -10,20 +10,19 @@ const RETURN_SPEED := 5.0
 const ATTACH_DISTANCE := 0.6
 const ATTACK_RANGE := 8.0     # Collector within this distance of HOME triggers attack
 const ABANDON_RANGE := 12.0   # Collector beyond this distance of HOME → bugs retreat
-const PATROL_RADIUS := 3.0    # Orbit radius around asteroid
-const PATROL_SPEED := 0.8     # Orbit speed (radians per second)
 const PATROL_LIFETIME := 10.0 # Seconds before an unengaged bug returns and despawns
+const HOLE_IDLE_DIST := 0.5   # How close to hole before considered "at rest"
 const ERRATIC_WEIGHT := 0.5
 const WANDER_SHIFT_SPEED := 1.8
 const CLOSE_DISTANCE := 5.0   # Within this range bugs fly straight at collector
 const BUG_RADIUS := 0.15      # Used for asteroid collision push-out
 
+var hole_marker: Node3D = null
+
 var _state: State = State.PATROLLING
 var _home_pos: Vector3 = Vector3.ZERO
 var _home_initialized: bool = false
-var _patrol_angle: float = 0.0
 var _patrol_timer: float = 0.0
-var _despawn_on_return: bool = false
 var _age: float = 0.0
 var _wander_dir: Vector3 = Vector3.ZERO
 var _mesh: MeshInstance3D = null
@@ -31,7 +30,6 @@ var _mesh: MeshInstance3D = null
 
 func _on_ready() -> void:
 	_build_mesh()
-	_patrol_angle = randf() * TAU
 	_wander_dir = Vector3(randf_range(-1, 1), randf_range(-0.3, 0.3), randf_range(-1, 1)).normalized()
 
 
@@ -64,21 +62,19 @@ func _on_process(delta: float) -> void:
 func _do_patrol(delta: float) -> void:
 	_patrol_timer += delta
 	if _patrol_timer >= PATROL_LIFETIME:
-		_despawn_on_return = true
 		_state = State.RETURNING
 		return
 
-	_patrol_angle += PATROL_SPEED * delta
-	var target := _home_pos + Vector3(
-		cos(_patrol_angle) * PATROL_RADIUS,
-		sin(_age * 0.7) * 0.4,
-		sin(_patrol_angle) * PATROL_RADIUS
-	)
-	var to_target := target - global_position
-	if to_target.length() > 0.1:
-		var move_dir := to_target.normalized()
+	# Move toward hole; idle (bob gently) once close
+	var hole_pos := _get_hole_pos()
+	var to_hole := hole_pos - global_position
+	if to_hole.length() > HOLE_IDLE_DIST:
+		var move_dir := to_hole.normalized()
 		global_position += move_dir * SPEED * delta
 		look_at(global_position + move_dir, Vector3.UP)
+	else:
+		# Gentle idle hover in place
+		global_position.y += sin(_age * 2.5) * 0.002
 
 
 func _check_for_threat() -> void:
@@ -126,14 +122,12 @@ func _check_retreat() -> void:
 # --- Return ---
 
 func _do_return(delta: float) -> void:
-	var to_home := _home_pos - global_position
-	if to_home.length() < 1.0:
-		if _despawn_on_return:
-			die()
-			return
-		_state = State.PATROLLING
+	var hole_pos := _get_hole_pos()
+	var to_hole := hole_pos - global_position
+	if to_hole.length() < HOLE_IDLE_DIST:
+		die()
 		return
-	var move_dir := to_home.normalized()
+	var move_dir := to_hole.normalized()
 	global_position += move_dir * RETURN_SPEED * delta
 	look_at(global_position + move_dir, Vector3.UP)
 
@@ -154,6 +148,13 @@ func _resolve_asteroid_collision() -> void:
 
 
 # --- Helpers ---
+
+## Returns the live world position of this bug's assigned hole, falling back to home asteroid.
+func _get_hole_pos() -> Vector3:
+	if hole_marker and is_instance_valid(hole_marker):
+		return hole_marker.global_position
+	return _home_pos
+
 
 func _find_nearest_collector() -> CollectorShip:
 	var nearest: CollectorShip = null

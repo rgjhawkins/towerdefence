@@ -108,6 +108,9 @@ func _on_asteroid_mined(_spawn_pos: Vector3) -> void:
 	var count := randi_range(1, 5)
 	for i in count:
 		var bug := BugAlien.new()
+		var marker := field.get_random_hole_marker() if field else null
+		var spawn := marker.global_position if marker else hole_pos
 		var offset := Vector3(randf_range(-0.2, 0.2), randf_range(0.0, 0.3), randf_range(-0.2, 0.2))
 		add_child(bug)
-		bug.global_position = hole_pos + offset
+		bug.global_position = spawn + offset
+		bug.hole_marker = marker

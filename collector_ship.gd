@@ -385,6 +385,9 @@ func _process_unloading(delta: float) -> void:
 	# Check distance to parking bay
 	var dist_to_parking := global_position.distance_to(parking_bay_pos)
 
+	if dist_to_parking <= unload_range:
+		_clear_attached_bugs()
+
 	if dist_to_parking <= unload_range and current_cargo > 0:
 		is_unloading = true
 		unload_accumulator += unload_rate * delta
@@ -479,6 +482,13 @@ func attach_bug(bug: Node3D) -> void:
 
 func detach_bug(bug: Node3D) -> void:
 	_attached_bugs.erase(bug)
+
+
+func _clear_attached_bugs() -> void:
+	for bug in _attached_bugs:
+		if is_instance_valid(bug):
+			bug.die()
+	_attached_bugs.clear()
 
 
 func _get_bug_slow_multiplier() -> float:
