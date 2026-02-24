@@ -473,11 +473,11 @@ func empty_cargo() -> int:
 	return amount
 
 
-func attach_bug(bug: Alien) -> void:
+func attach_bug(bug: Node3D) -> void:
 	_attached_bugs.append(bug)
 
 
-func detach_bug(bug: Alien) -> void:
+func detach_bug(bug: Node3D) -> void:
 	_attached_bugs.erase(bug)
 
 

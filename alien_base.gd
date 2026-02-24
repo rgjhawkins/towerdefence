@@ -3,7 +3,7 @@ extends Node3D
 ## Base class for all alien enemy types.
 ## Subclasses override _on_ready() and _on_process() for their specific behaviour.
 
-signal died(alien: Alien)
+signal died(alien: Node3D)
 
 var is_alive: bool = true
 
