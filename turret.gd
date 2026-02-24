@@ -1,5 +1,5 @@
 class_name StationTurret
-extends Turret
+extends "res://collector_turret_base.gd"
 
 signal fired(bullet: Bullet)
 signal clicked(turret: StationTurret)
