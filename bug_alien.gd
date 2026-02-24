@@ -16,6 +16,7 @@ const PATROL_LIFETIME := 10.0 # Seconds before an unengaged bug returns and desp
 const ERRATIC_WEIGHT := 0.5
 const WANDER_SHIFT_SPEED := 1.8
 const CLOSE_DISTANCE := 5.0   # Within this range bugs fly straight at collector
+const BUG_RADIUS := 0.15      # Used for asteroid collision push-out
 
 var _state: State = State.PATROLLING
 var _home_pos: Vector3 = Vector3.ZERO
@@ -53,6 +54,9 @@ func _on_process(delta: float) -> void:
 			_do_return(delta)
 		State.ATTACHED:
 			_do_attached_idle()
+			return  # Attached bugs are parented to the collector — skip collision
+
+	_resolve_asteroid_collision()
 
 
 # --- Patrol ---
@@ -132,6 +136,21 @@ func _do_return(delta: float) -> void:
 	var move_dir := to_home.normalized()
 	global_position += move_dir * RETURN_SPEED * delta
 	look_at(global_position + move_dir, Vector3.UP)
+
+
+# --- Collision ---
+
+func _resolve_asteroid_collision() -> void:
+	for node in get_tree().get_nodes_in_group("asteroids"):
+		var asteroid := node as Node3D
+		if not asteroid:
+			continue
+		var asteroid_radius: float = asteroid.get_meta("radius", 1.0)
+		var min_dist := asteroid_radius + BUG_RADIUS
+		var offset := global_position - asteroid.global_position
+		var dist := offset.length()
+		if dist < min_dist and dist > 0.001:
+			global_position = asteroid.global_position + offset.normalized() * min_dist
 
 
 # --- Helpers ---
