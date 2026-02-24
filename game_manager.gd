@@ -72,6 +72,7 @@ func _spawn_collector() -> void:
 		collector_ship.health_changed.connect(_on_collector_health_changed)
 		collector_ship.cargo_changed.connect(_on_cargo_changed)
 		collector_ship.cargo_unloaded.connect(_on_cargo_unloaded)
+		collector_ship.asteroid_mined.connect(_on_asteroid_mined)
 		add_child(collector_ship)
 		if hud:
 			hud.collector_ship = collector_ship
@@ -95,3 +96,12 @@ func _on_station_scrap_collected(amount: int) -> void:
 func _on_collector_health_changed(current: float, _maximum: float) -> void:
 	if hud:
 		hud.update_collector_health(current)
+
+
+func _on_asteroid_mined(position: Vector3) -> void:
+	var count := randi_range(1, 5)
+	for i in count:
+		var bug := BugAlien.new()
+		var offset := Vector3(randf_range(-0.5, 0.5), randf_range(0.0, 0.5), randf_range(-0.5, 0.5))
+		add_child(bug)
+		bug.global_position = position + offset

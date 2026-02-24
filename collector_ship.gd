@@ -6,6 +6,7 @@ signal health_changed(current: float, maximum: float)
 signal cargo_changed(current: int, capacity: int)
 signal cargo_unloaded(amount: int)
 signal destroyed()
+signal asteroid_mined(position: Vector3)
 
 # Flying scrap animation constants
 const SCRAP_SPAWN_OFFSET := 0.3
@@ -59,6 +60,7 @@ class FlyingScrapData:
 @export var parking_bay_node: Node3D
 @export var intake_node: Node3D
 
+var _attached_bugs: Array = []
 var velocity: Vector3 = Vector3.ZERO
 var _mining_target: StaticBody3D = null
 var _laser_beam: MeshInstance3D = null
@@ -86,6 +88,7 @@ var flying_scrap: Array = []  # Array of FlyingScrapData
 
 
 func _ready() -> void:
+	add_to_group("collectors")
 	health = max_health
 	health_changed.emit(health, max_health)
 	cargo_changed.emit(current_cargo, cargo_capacity)
@@ -167,17 +170,19 @@ func _process(delta: float) -> void:
 
 
 func _handle_input(delta: float) -> void:
+	var slow := _get_bug_slow_multiplier()
+
 	# Rotation (A/D keys)
 	if Input.is_physical_key_pressed(KEY_A):
-		rotation.y += deg_to_rad(rotation_speed) * delta
+		rotation.y += deg_to_rad(rotation_speed * slow) * delta
 	if Input.is_physical_key_pressed(KEY_D):
-		rotation.y -= deg_to_rad(rotation_speed) * delta
+		rotation.y -= deg_to_rad(rotation_speed * slow) * delta
 
 	# Thrust (W key)
 	is_thrusting = Input.is_physical_key_pressed(KEY_W)
 	if is_thrusting:
 		var forward := -global_transform.basis.z
-		velocity += forward * thrust_power * delta
+		velocity += forward * (thrust_power * slow) * delta
 
 
 func _apply_physics(delta: float) -> void:
@@ -306,6 +311,8 @@ func _spawn_mined_scrap(hit_point: Vector3) -> void:
 		var scatter := Vector3(randf_range(-1.0, 1.0), 0.0, randf_range(-1.0, 1.0))
 		var eject_dir := Vector3((surface_normal + scatter).x, 0.0, (surface_normal + scatter).z).normalized()
 		scrap.drift_direction = eject_dir * randf_range(SCRAP_EJECT_SPEED * 0.6, SCRAP_EJECT_SPEED * 1.4)
+
+	asteroid_mined.emit(hit_point)
 
 
 func _process_tractor_beam(delta: float) -> void:
@@ -464,3 +471,15 @@ func empty_cargo() -> int:
 	current_cargo = 0
 	cargo_changed.emit(current_cargo, cargo_capacity)
 	return amount
+
+
+func attach_bug(bug: Alien) -> void:
+	_attached_bugs.append(bug)
+
+
+func detach_bug(bug: Alien) -> void:
+	_attached_bugs.erase(bug)
+
+
+func _get_bug_slow_multiplier() -> float:
+	return maxf(0.1, 1.0 - _attached_bugs.size() * 0.03)
