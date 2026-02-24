@@ -1,66 +1,128 @@
 class_name BugAlien
 extends Alien
-## Small green bug that emerges from mined asteroids, swarms toward the nearest
-## collector ship, attaches to its hull, and slows thrust and rotation by 3% per bug.
+## Hive-defender bug. Patrols around its home asteroid, attacks collectors that
+## come too close, and returns home when the threat moves away.
 
-enum State { SWARMING, ATTACHED }
+enum State { PATROLLING, ATTACKING, RETURNING, ATTACHED }
 
 const SPEED := 3.0
+const RETURN_SPEED := 5.0
 const ATTACH_DISTANCE := 0.6
-const ERRATIC_WEIGHT := 0.5       # 0 = pure homing, 1 = pure wander
-const WANDER_SHIFT_SPEED := 1.8   # How fast the random wander direction drifts
-const CLOSE_DISTANCE := 5.0       # Within this range bugs fly straight at the collector
+const ATTACK_RANGE := 8.0     # Collector within this distance of HOME triggers attack
+const ABANDON_RANGE := 12.0   # Collector beyond this distance of HOME → bugs retreat
+const PATROL_RADIUS := 3.0    # Orbit radius around asteroid
+const PATROL_SPEED := 0.8     # Orbit speed (radians per second)
+const ERRATIC_WEIGHT := 0.5
+const WANDER_SHIFT_SPEED := 1.8
+const CLOSE_DISTANCE := 5.0   # Within this range bugs fly straight at collector
 
-var _state: State = State.SWARMING
+var _state: State = State.PATROLLING
+var _home_pos: Vector3 = Vector3.ZERO
+var _home_initialized: bool = false
+var _patrol_angle: float = 0.0
 var _age: float = 0.0
-var _mesh: MeshInstance3D = null
 var _wander_dir: Vector3 = Vector3.ZERO
+var _mesh: MeshInstance3D = null
 
 
 func _on_ready() -> void:
 	_build_mesh()
-	# Seed a random initial wander direction so each bug diverges immediately
+	_patrol_angle = randf() * TAU
 	_wander_dir = Vector3(randf_range(-1, 1), randf_range(-0.3, 0.3), randf_range(-1, 1)).normalized()
 
 
 func _on_process(delta: float) -> void:
+	# Home position resolved on first frame so global_position is already set
+	if not _home_initialized:
+		_home_pos = _find_home_asteroid()
+		_home_initialized = true
+
 	_age += delta
+
 	match _state:
-		State.SWARMING:
-			_do_swarm(delta)
+		State.PATROLLING:
+			_do_patrol(delta)
+			_check_for_threat()
+		State.ATTACKING:
+			_do_attack(delta)
+			_check_retreat()
+		State.RETURNING:
+			_do_return(delta)
 		State.ATTACHED:
 			_do_attached_idle()
 
 
-# --- Movement ---
+# --- Patrol ---
 
-func _do_swarm(delta: float) -> void:
+func _do_patrol(delta: float) -> void:
+	_patrol_angle += PATROL_SPEED * delta
+	var target := _home_pos + Vector3(
+		cos(_patrol_angle) * PATROL_RADIUS,
+		sin(_age * 0.7) * 0.4,
+		sin(_patrol_angle) * PATROL_RADIUS
+	)
+	var to_target := target - global_position
+	if to_target.length() > 0.1:
+		var move_dir := to_target.normalized()
+		global_position += move_dir * SPEED * delta
+		look_at(global_position + move_dir, Vector3.UP)
+
+
+func _check_for_threat() -> void:
 	var collector := _find_nearest_collector()
 	if not collector:
 		return
+	if _home_pos.distance_to(collector.global_position) < ATTACK_RANGE:
+		_state = State.ATTACKING
 
-	var to_target := collector.global_position - global_position
-	var dist := to_target.length()
+
+# --- Attack ---
+
+func _do_attack(delta: float) -> void:
+	var collector := _find_nearest_collector()
+	if not collector:
+		_state = State.RETURNING
+		return
+
+	var to_collector := collector.global_position - global_position
+	var dist := to_collector.length()
 
 	if dist < ATTACH_DISTANCE:
 		_attach(collector)
 		return
 
-	# Smoothly drift the wander direction toward a new random target each frame
+	# Erratic wander blended with homing; fades to direct when close
 	var random_nudge := Vector3(randf_range(-1, 1), randf_range(-0.3, 0.3), randf_range(-1, 1)).normalized()
 	_wander_dir = _wander_dir.lerp(random_nudge, WANDER_SHIFT_SPEED * delta).normalized()
 
-	# Blend homing direction with the erratic wander.
-	# Erratic weight fades to zero as the bug closes in on the collector.
-	var home_dir := to_target.normalized()
+	var home_dir := to_collector.normalized()
 	var erratic := ERRATIC_WEIGHT * clampf(dist / CLOSE_DISTANCE, 0.0, 1.0)
 	var move_dir := home_dir.lerp(_wander_dir, erratic).normalized()
 
 	global_position += move_dir * SPEED * delta
-
 	if move_dir.length() > 0.01:
 		look_at(global_position + move_dir, Vector3.UP)
 
+
+func _check_retreat() -> void:
+	var collector := _find_nearest_collector()
+	if not collector or _home_pos.distance_to(collector.global_position) > ABANDON_RANGE:
+		_state = State.RETURNING
+
+
+# --- Return ---
+
+func _do_return(delta: float) -> void:
+	var to_home := _home_pos - global_position
+	if to_home.length() < 1.0:
+		_state = State.PATROLLING
+		return
+	var move_dir := to_home.normalized()
+	global_position += move_dir * RETURN_SPEED * delta
+	look_at(global_position + move_dir, Vector3.UP)
+
+
+# --- Helpers ---
 
 func _find_nearest_collector() -> CollectorShip:
 	var nearest: CollectorShip = null
@@ -76,16 +138,26 @@ func _find_nearest_collector() -> CollectorShip:
 	return nearest
 
 
+func _find_home_asteroid() -> Vector3:
+	var nearest_dist := INF
+	var result := global_position
+	for node in get_tree().get_nodes_in_group("asteroids"):
+		var asteroid := node as Node3D
+		if not asteroid:
+			continue
+		var d := global_position.distance_to(asteroid.global_position)
+		if d < nearest_dist:
+			nearest_dist = d
+			result = asteroid.global_position
+	return result
+
+
 # --- Attachment ---
 
 func _attach(collector: CollectorShip) -> void:
 	_state = State.ATTACHED
 	collector.attach_bug(self)
-
-	# Reparent so the bug moves with the ship
 	reparent(collector, true)
-
-	# Snap to a random point on the hull surface
 	position = Vector3(
 		randf_range(-0.4, 0.4),
 		randf_range(-0.15, 0.15),
@@ -95,7 +167,6 @@ func _attach(collector: CollectorShip) -> void:
 
 
 func _do_attached_idle() -> void:
-	# Gentle pulse to show the bug is alive
 	if _mesh:
 		var pulse := 1.0 + sin(_age * 6.0) * 0.05
 		_mesh.scale = Vector3.ONE * pulse
@@ -112,7 +183,7 @@ func _build_mesh() -> void:
 
 	var sphere := SphereMesh.new()
 	sphere.radius = 0.12
-	sphere.height = 0.17  # Slightly squished for a bug silhouette
+	sphere.height = 0.17
 	sphere.radial_segments = 8
 	sphere.rings = 4
 	sphere.material = mat
