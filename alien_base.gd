@@ -6,6 +6,8 @@ extends Node3D
 signal died(alien: Node3D)
 
 var is_alive: bool = true
+var max_health: float = 1.0
+var health: float = 1.0
 
 
 func _ready() -> void:
@@ -28,9 +30,10 @@ func _on_process(_delta: float) -> void:
 	pass
 
 
-## Called by bullets/weapons. Combat wiring added later.
-func take_damage(_amount: float) -> void:
-	pass
+func take_damage(amount: float) -> void:
+	health -= amount
+	if health <= 0.0:
+		die()
 
 
 func die() -> void:

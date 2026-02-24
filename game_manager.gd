@@ -105,7 +105,7 @@ func _on_asteroid_mined(_spawn_pos: Vector3) -> void:
 	if field:
 		hole_pos = field.get_random_hole_position()
 
-	var count := randi_range(1, 5)
+	var count := randi_range(10, 20)
 	for i in count:
 		var bug := BugAlien.new()
 		var marker := field.get_random_hole_marker() if field else null

@@ -3,14 +3,18 @@ extends CollectorTurretBase
 ## Collector hardpoint turret: auto-aims and fires tracer rounds at the nearest
 ## alien within range. Skips aliens that are already attached to this ship.
 
-const FIRE_RATE := 4.0          # Shots per second
+const BULLET_SCENE := preload("res://bullet.tscn")
 const BULLET_SPEED := 60.0
-const RANGE := 15.0
 const BULLET_MAX_DIST := 20.0
+
+@export var range: float = 8.0
 const DAMAGE := 1.0
 const BARREL_LENGTH := 0.25
-const TRACKING_SPEED := 240.0   # Degrees per second
-const AIM_THRESHOLD := 8.0      # Degrees — must be this close to fire
+const AIM_THRESHOLD := 5.0      # Degrees — must be this close to fire
+
+@export var rpm: float = 200.0          # Rounds per minute
+@export var tracking_speed: float = 240.0  # Degrees per second barrel rotation
+@export var aim_deviation: float = 5.0  # Max spread cone half-angle in degrees
 
 var _barrel: Node3D = null
 var _muzzle: Node3D = null
@@ -36,7 +40,7 @@ func _process(delta: float) -> void:
 
 func _acquire_target() -> void:
 	var nearest: Node3D = null
-	var nearest_dist := RANGE
+	var nearest_dist := range
 	for node in get_tree().get_nodes_in_group("aliens"):
 		var alien := node as Node3D
 		if not alien:
@@ -90,13 +94,13 @@ func _track_target(delta: float) -> void:
 	var cq := _barrel.global_transform.basis.get_rotation_quaternion()
 	var tq := _barrel.global_transform.looking_at(aim, Vector3.UP).basis.get_rotation_quaternion()
 	var angle_diff := cq.angle_to(tq)
-	var max_rot := deg_to_rad(TRACKING_SPEED) * delta
+	var max_rot := deg_to_rad(tracking_speed) * delta
 	var w: float = 1.0 if angle_diff < 0.001 else minf(max_rot / angle_diff, 1.0)
 	_barrel.global_transform.basis = Basis(cq.slerp(tq, w))
 
 
 func _try_fire() -> void:
-	if _time_since_shot < 1.0 / FIRE_RATE:
+	if _time_since_shot < 60.0 / rpm:
 		return
 	var aim := _lead_position()
 	var fwd := -_barrel.global_transform.basis.z.normalized()
@@ -108,11 +112,16 @@ func _try_fire() -> void:
 
 
 func _fire() -> void:
-	var bullet := Bullet.new()
+	var bullet := BULLET_SCENE.instantiate() as Bullet
 	bullet.speed = BULLET_SPEED
 	bullet.damage = DAMAGE
-	bullet.direction = -_barrel.global_transform.basis.z.normalized()
 	bullet.max_distance = BULLET_MAX_DIST
+
+	# Apply random spread cone of ±aim_deviation degrees
+	var fwd := -_barrel.global_transform.basis.z.normalized()
+	var perp := Vector3(randf_range(-1.0, 1.0), randf_range(-1.0, 1.0), randf_range(-1.0, 1.0))
+	perp = (perp - perp.dot(fwd) * fwd).normalized()
+	bullet.direction = fwd.rotated(perp, deg_to_rad(randf_range(-aim_deviation, aim_deviation)))
 	bullet.hit_radius = 0.4
 	get_tree().root.add_child(bullet)
 	bullet.global_position = _muzzle.global_position
