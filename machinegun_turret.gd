@@ -20,6 +20,7 @@ var _barrel: Node3D = null
 var _muzzle: Node3D = null
 var _time_since_shot: float = 0.0
 var _target: Node3D = null
+var _shot_player: AudioStreamPlayer = null
 
 
 func get_turret_name() -> String:
@@ -28,6 +29,40 @@ func get_turret_name() -> String:
 
 func _ready() -> void:
 	_build_mesh()
+	_setup_audio()
+
+
+func _setup_audio() -> void:
+	_shot_player = AudioStreamPlayer.new()
+	_shot_player.stream = _build_shot_sound()
+	_shot_player.volume_db = 0.0
+	add_child(_shot_player)
+
+
+## Builds a short synthetic gunshot: white-noise crack + low bass thump, ~100 ms.
+func _build_shot_sound() -> AudioStreamWAV:
+	const SAMPLE_RATE := 22050
+	const DURATION := 0.10
+	var num_samples := int(SAMPLE_RATE * DURATION)
+	var data := PackedByteArray()
+	data.resize(num_samples * 2)  # 16-bit mono PCM
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 42  # Fixed seed so every turret sounds identical
+	for i in num_samples:
+		var t := float(i) / SAMPLE_RATE
+		# Crack: white noise with sharp exponential decay
+		var crack := rng.randf_range(-1.0, 1.0) * exp(-t * 60.0)
+		# Thump: low sine wave that decays a bit slower
+		var thump := sin(t * TAU * 90.0) * exp(-t * 30.0) * 0.5
+		var sample := clampi(int((crack + thump) * 28000.0), -32768, 32767)
+		data[i * 2]     = sample & 0xFF
+		data[i * 2 + 1] = (sample >> 8) & 0xFF
+	var wav := AudioStreamWAV.new()
+	wav.data = data
+	wav.format = AudioStreamWAV.FORMAT_16_BITS
+	wav.mix_rate = SAMPLE_RATE
+	wav.stereo = false
+	return wav
 
 
 func _process(delta: float) -> void:
@@ -126,6 +161,8 @@ func _fire() -> void:
 	get_tree().root.add_child(bullet)
 	bullet.global_position = _muzzle.global_position
 	_spawn_muzzle_flash()
+	if _shot_player:
+		_shot_player.play()
 
 
 func _spawn_muzzle_flash() -> void:
