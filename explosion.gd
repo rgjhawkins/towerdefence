@@ -1,3 +1,4 @@
+class_name Explosion
 extends Node3D
 
 @export var lifetime: float = 0.3

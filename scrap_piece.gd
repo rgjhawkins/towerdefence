@@ -1,3 +1,4 @@
+class_name ScrapPiece
 extends Node3D
 
 @export var drift_speed: float = 0.5

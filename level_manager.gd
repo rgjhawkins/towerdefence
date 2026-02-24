@@ -6,8 +6,8 @@ signal wave_started(wave_number: int, total_waves: int)
 signal level_completed(level_number: int)
 signal all_levels_completed()
 
-# Ship type enum - replaces magic strings
 enum ShipType { FRIGATE, BOMBER }
+enum State { IDLE, SPAWNING, WAITING, COMPLETE }
 
 # Timing constants
 const DEFAULT_COMPLETION_DELAY := 30.0
@@ -52,9 +52,7 @@ var current_level: int = 0
 var current_wave: int = 0
 var wave_timer: float = 0.0
 var completion_timer: float = 0.0
-var is_spawning_waves: bool = false
-var waiting_for_completion: bool = false
-var level_active: bool = false
+var _state: State = State.IDLE
 
 # Reference to game manager for spawning
 var game_manager: Node = null
@@ -113,9 +111,7 @@ func start_level(level_index: int) -> void:
 	current_wave = 0
 	wave_timer = 0.0
 	completion_timer = 0.0
-	is_spawning_waves = true
-	waiting_for_completion = false
-	level_active = true
+	_state = State.SPAWNING
 
 	var total_waves = levels[current_level].waves.size()
 	print("Starting Level %d" % (current_level + 1))
@@ -123,13 +119,11 @@ func start_level(level_index: int) -> void:
 
 
 func _process(delta: float) -> void:
-	if not level_active:
-		return
-
-	if is_spawning_waves:
-		_process_wave_spawning(delta)
-	elif waiting_for_completion:
-		_process_completion(delta)
+	match _state:
+		State.SPAWNING:
+			_process_wave_spawning(delta)
+		State.WAITING:
+			_process_completion(delta)
 
 
 func _process_wave_spawning(delta: float) -> void:
@@ -137,8 +131,7 @@ func _process_wave_spawning(delta: float) -> void:
 
 	if current_wave >= level_data.waves.size():
 		# All waves spawned, wait for completion
-		is_spawning_waves = false
-		waiting_for_completion = true
+		_state = State.WAITING
 		completion_timer = 0.0
 		print("All waves spawned. Waiting %.0fs for level completion..." % level_data.completion_delay)
 		return
@@ -197,8 +190,7 @@ func _complete_level() -> void:
 	print("Level %d Complete!" % (current_level + 1))
 	level_completed.emit(current_level)
 
-	waiting_for_completion = false
-	level_active = false
+	_state = State.COMPLETE
 
 	# Check if there are more levels
 	if current_level + 1 < levels.size():

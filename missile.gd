@@ -1,9 +1,9 @@
-extends Node3D
+class_name Missile
+extends Projectile
 
 @export var initial_speed: float = 1.0
 @export var max_speed: float = 15.0
 @export var acceleration: float = 8.0
-@export var damage: float = 1.0
 @export var lifetime: float = 10.0
 @export var wobble_strength: float = 3.0
 @export var wobble_frequency: float = 4.0
@@ -83,8 +83,7 @@ func _process(delta: float) -> void:
 
 
 func _hit_target() -> void:
-	# Find HUD and deal damage to station
-	var hud = get_tree().root.get_node_or_null("Main/HUD")
-	if hud and hud.has_method("take_damage"):
+	var hud := _get_hud()
+	if hud:
 		hud.take_damage(damage)
 	queue_free()

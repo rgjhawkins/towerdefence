@@ -1,8 +1,8 @@
-extends Node3D
+class_name Plasma
+extends Projectile
 ## Slow plasma ball fired by Bombers
 
 @export var speed: float = 4.0
-@export var damage: float = 2.0
 @export var lifetime: float = 8.0
 
 var target_position: Vector3 = Vector3.ZERO
@@ -34,7 +34,7 @@ func _process(delta: float) -> void:
 
 
 func _hit_target() -> void:
-	var hud = get_tree().root.get_node_or_null("Main/HUD")
-	if hud and hud.has_method("take_damage"):
+	var hud := _get_hud()
+	if hud:
 		hud.take_damage(damage)
 	queue_free()

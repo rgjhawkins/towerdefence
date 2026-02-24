@@ -1,11 +1,10 @@
 [gd_scene format=3 uid="uid://btoaqgre5ipvb"]
 
 [ext_resource type="PackedScene" path="res://space_station.tscn" id="1_station"]
-[ext_resource type="PackedScene" path="res://alien.tscn" id="3_alien"]
 [ext_resource type="Script" uid="uid://dey2ybho8y5vs" path="res://game_manager.gd" id="4_gamemanager"]
 [ext_resource type="PackedScene" path="res://hud.tscn" id="5_hud"]
 [ext_resource type="PackedScene" path="res://collector_ship.tscn" id="6_collector"]
-[ext_resource type="PackedScene" path="res://bomber.tscn" id="7_bomber"]
+[ext_resource type="Script" path="res://asteroid_field.gd" id="8_asteroidfield"]
 
 [sub_resource type="Shader" id="Shader_starfield"]
 code = "
@@ -91,9 +90,9 @@ script/source = "extends Node3D
 @export var star_count_mid: int = 100
 @export var star_count_far: int = 200
 
-@export var speed_close: float = 15.0
-@export var speed_mid: float = 6.0
-@export var speed_far: float = 2.0
+@export var speed_close: float = 5.0
+@export var speed_mid: float = 2.0
+@export var speed_far: float = 0.6
 
 @export var spawn_top: float = 50.0
 @export var despawn_bottom: float = -50.0
@@ -200,8 +199,9 @@ shadow_enabled = true
 
 [node name="GameManager" type="Node3D" parent="." unique_id=1673761791]
 script = ExtResource("4_gamemanager")
-alien_scene = ExtResource("3_alien")
-bomber_scene = ExtResource("7_bomber")
 collector_scene = ExtResource("6_collector")
 
 [node name="HUD" parent="." unique_id=1518473459 instance=ExtResource("5_hud")]
+
+[node name="AsteroidField" type="Node3D" parent="." unique_id=2047193821]
+script = ExtResource("8_asteroidfield")

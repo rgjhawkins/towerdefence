@@ -16,6 +16,14 @@ const SCRAP_SPIN_SPEED := Vector3(5.0, 7.0, 3.0)
 
 # Beam constants
 const BEAM_RADIUS := 0.02
+const COLLECTOR_RADIUS := 0.65
+
+# Mining constants
+const SCRAP_SCENE := preload("res://scrap_piece.tscn")
+const MINING_RANGE := 8.0
+const MINING_SCRAP_RATE := 0.4  # Scrap per second
+const LASER_RADIUS := 0.03
+const SCRAP_EJECT_SPEED := 1.2
 
 # Default positions (fallback if not assigned)
 const DEFAULT_PARKING_POS := Vector3(-4.76, 1, 1.55)
@@ -38,7 +46,7 @@ class FlyingScrapData:
 @export var rotation_speed: float = 180.0  # Degrees per second
 @export var thrust_power: float = 15.0
 @export var max_speed: float = 12.0
-@export var drag: float = 0.98  # Velocity multiplier per frame
+@export var drag: float = 0.992  # Velocity multiplier per frame
 @export var tractor_range: float = 2.5  # Range to start pulling scrap
 @export var tractor_power: float = 8.0  # Pull speed
 @export var collect_distance: float = 0.5  # Distance to collect scrap
@@ -52,6 +60,11 @@ class FlyingScrapData:
 @export var intake_node: Node3D
 
 var velocity: Vector3 = Vector3.ZERO
+var _mining_target: StaticBody3D = null
+var _laser_beam: MeshInstance3D = null
+var _laser_material: StandardMaterial3D = null
+var _impact_glow: MeshInstance3D = null
+var _mining_accumulator: float = 0.0
 var is_thrusting: bool = false
 var is_tractoring: bool = false
 var is_unloading: bool = false
@@ -69,6 +82,7 @@ var flying_scrap: Array = []  # Array of FlyingScrapData
 @onready var engine_glow_left: CSGCylinder3D = $Ship/EngineGlowLeft
 @onready var engine_glow_right: CSGCylinder3D = $Ship/EngineGlowRight
 @onready var tractor_turret: Node3D = $Ship/TractorTurret
+@onready var weapon_mount: Node3D = $Ship/WeaponMount
 
 
 func _ready() -> void:
@@ -89,6 +103,41 @@ func _ready() -> void:
 	beam_material.emission = Color(0.4, 0.7, 1.0, 1.0)
 	beam_material.emission_energy_multiplier = 3.0
 	beam_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+
+	# Create mining laser beam
+	_laser_material = StandardMaterial3D.new()
+	_laser_material.albedo_color = Color(1.0, 0.25, 0.05, 0.9)
+	_laser_material.emission_enabled = true
+	_laser_material.emission = Color(1.0, 0.35, 0.1, 1.0)
+	_laser_material.emission_energy_multiplier = 6.0
+	_laser_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	var laser_cylinder := CylinderMesh.new()
+	laser_cylinder.top_radius = LASER_RADIUS
+	laser_cylinder.bottom_radius = LASER_RADIUS
+	laser_cylinder.height = 1.0
+	laser_cylinder.material = _laser_material
+	_laser_beam = MeshInstance3D.new()
+	_laser_beam.mesh = laser_cylinder
+	_laser_beam.visible = false
+	add_child(_laser_beam)
+
+	# Create impact glow at asteroid surface
+	var impact_mat := StandardMaterial3D.new()
+	impact_mat.albedo_color = Color(1.0, 0.6, 0.1, 0.85)
+	impact_mat.emission_enabled = true
+	impact_mat.emission = Color(1.0, 0.5, 0.1, 1.0)
+	impact_mat.emission_energy_multiplier = 8.0
+	impact_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	var impact_sphere := SphereMesh.new()
+	impact_sphere.radius = 0.22
+	impact_sphere.height = 0.44
+	impact_sphere.radial_segments = 8
+	impact_sphere.rings = 4
+	impact_sphere.material = impact_mat
+	_impact_glow = MeshInstance3D.new()
+	_impact_glow.mesh = impact_sphere
+	_impact_glow.visible = false
+	add_child(_impact_glow)
 
 	# Create glowing scrap visual material
 	scrap_visual_material = StandardMaterial3D.new()
@@ -112,6 +161,7 @@ func _process(delta: float) -> void:
 	_apply_physics(delta)
 	_update_engine_glow()
 	_process_tractor_beam(delta)
+	_process_mining_laser(delta)
 	_process_unloading(delta)
 	_process_flying_scrap(delta)
 
@@ -144,10 +194,30 @@ func _apply_physics(delta: float) -> void:
 	# Apply movement
 	position += velocity * delta
 
+	# Asteroid collision
+	for asteroid in get_tree().get_nodes_in_group("asteroids"):
+		var asteroid_node := asteroid as Node3D
+		if not asteroid_node:
+			continue
+		var asteroid_radius: float = asteroid_node.get_meta("radius", 1.0)
+		var min_dist := COLLECTOR_RADIUS + asteroid_radius
+		var offset := Vector3(
+			position.x - asteroid_node.global_position.x,
+			0,
+			position.z - asteroid_node.global_position.z
+		)
+		var dist := offset.length()
+		if dist < min_dist and dist > 0.001:
+			var push_dir := offset.normalized()
+			position += push_dir * (min_dist - dist)
+			var vel_into := velocity.dot(-push_dir)
+			if vel_into > 0:
+				velocity += push_dir * vel_into
+
 	# Keep away from station shield (at origin)
 	var to_ship := Vector3(position.x, 0, position.z)
-	var dist := to_ship.length()
-	if dist < shield_radius:
+	var shield_dist := to_ship.length()
+	if shield_dist < shield_radius:
 		var push_dir := to_ship.normalized()
 		position.x = push_dir.x * shield_radius
 		position.z = push_dir.z * shield_radius
@@ -164,6 +234,78 @@ func _update_engine_glow() -> void:
 		engine_glow_left.visible = is_thrusting
 	if engine_glow_right:
 		engine_glow_right.visible = is_thrusting
+
+
+func _process_mining_laser(delta: float) -> void:
+	# Find closest asteroid within mining range
+	var closest: StaticBody3D = null
+	var closest_dist := MINING_RANGE
+	for node in get_tree().get_nodes_in_group("asteroids"):
+		var asteroid := node as StaticBody3D
+		if not asteroid:
+			continue
+		var dist := global_position.distance_to(asteroid.global_position)
+		if dist < closest_dist:
+			closest_dist = dist
+			closest = asteroid
+
+	_mining_target = closest
+
+	if not _mining_target:
+		_laser_beam.visible = false
+		_impact_glow.visible = false
+		_mining_accumulator = 0.0
+		return
+
+	# Rotate weapon mount to track asteroid, locked to Y axis
+	var look_target := Vector3(_mining_target.global_position.x, weapon_mount.global_position.y, _mining_target.global_position.z)
+	weapon_mount.look_at(look_target, Vector3.UP)
+
+	# Barrel tip: step forward along weapon_mount's -Z axis and slightly up to clear the mount plate
+	var barrel_forward := -weapon_mount.global_transform.basis.z
+	var beam_start := weapon_mount.global_position + barrel_forward * 0.14 + Vector3(0.0, 0.08, 0.0)
+
+	# Hit point = point on asteroid surface closest to the barrel
+	var asteroid_radius: float = _mining_target.get_meta("radius", 1.0)
+	var to_asteroid := (_mining_target.global_position - beam_start).normalized()
+	var hit_point := _mining_target.global_position - to_asteroid * asteroid_radius
+
+	# Position and orient the laser beam
+	var beam_length := beam_start.distance_to(hit_point)
+	_laser_beam.visible = true
+	_laser_beam.global_position = (beam_start + hit_point) / 2.0
+	_laser_beam.look_at(hit_point, Vector3.UP)
+	_laser_beam.rotate_object_local(Vector3.RIGHT, PI / 2.0)
+	_laser_beam.scale = Vector3(1.0, beam_length, 1.0)
+
+	# Impact glow — pulse scale slightly for liveliness
+	var pulse := 0.85 + sin(Time.get_ticks_msec() * 0.008) * 0.15
+	_impact_glow.visible = true
+	_impact_glow.global_position = hit_point
+	_impact_glow.scale = Vector3(pulse, pulse, pulse)
+
+	# Accumulate mining and spawn scrap at hit point
+	_mining_accumulator += MINING_SCRAP_RATE * delta
+	if _mining_accumulator >= 1.0:
+		_mining_accumulator -= 1.0
+		_spawn_mined_scrap(hit_point)
+
+
+func _spawn_mined_scrap(hit_point: Vector3) -> void:
+	var count := randi_range(1, 5)
+	# Base outward direction from asteroid centre to hit point
+	var surface_normal := (hit_point - _mining_target.global_position).normalized()
+	for i in count:
+		var scrap := SCRAP_SCENE.instantiate()
+		get_tree().root.add_child(scrap)
+		# Slight random offset so pieces don't all start at exactly the same spot
+		scrap.global_position = hit_point + Vector3(
+			randf_range(-0.15, 0.15), 0.0, randf_range(-0.15, 0.15)
+		)
+		# Random direction in a hemisphere around the surface normal
+		var scatter := Vector3(randf_range(-1.0, 1.0), 0.0, randf_range(-1.0, 1.0))
+		var eject_dir := Vector3((surface_normal + scatter).x, 0.0, (surface_normal + scatter).z).normalized()
+		scrap.drift_direction = eject_dir * randf_range(SCRAP_EJECT_SPEED * 0.6, SCRAP_EJECT_SPEED * 1.4)
 
 
 func _process_tractor_beam(delta: float) -> void:
@@ -224,12 +366,10 @@ func _update_beam_lines(targets: Array[Node3D]) -> void:
 			# Position at midpoint
 			beam.global_position = midpoint
 
-			# Scale to match distance
-			beam.scale = Vector3(1, distance, 1)
-
-			# Orient to point at target
+			# Orient to point at target, then scale — order matters: look_at resets scale
 			beam.look_at(target_pos, Vector3.UP)
 			beam.rotate_object_local(Vector3.RIGHT, PI / 2.0)
+			beam.scale = Vector3(1, distance, 1)
 		else:
 			beam.visible = false
 
