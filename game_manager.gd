@@ -98,10 +98,10 @@ func _on_collector_health_changed(current: float, _maximum: float) -> void:
 		hud.update_collector_health(current)
 
 
-func _on_asteroid_mined(position: Vector3) -> void:
+func _on_asteroid_mined(spawn_pos: Vector3) -> void:
 	var count := randi_range(1, 5)
 	for i in count:
 		var bug := BugAlien.new()
 		var offset := Vector3(randf_range(-0.5, 0.5), randf_range(0.0, 0.5), randf_range(-0.5, 0.5))
 		add_child(bug)
-		bug.global_position = position + offset
+		bug.global_position = spawn_pos + offset
