@@ -1,9 +1,6 @@
 """
-Generates assets/audio/mining_laser.wav — a loopable mining laser sound.
-Layers: low industrial hum + mid buzz + high-freq laser whine,
-amplitude-modulated at 8 Hz so it feels like active cutting.
-The 2-second duration is an exact multiple of the 8 Hz mod period,
-so it loops seamlessly.
+Generates assets/audio/mining_laser.wav — a loopable low hum.
+Simple sine wave at 90 Hz with two harmonics, no modulation.
 
 Run via:  python3 assets/gen_mining_sound.py
 """
@@ -14,7 +11,7 @@ import math
 import os
 
 SAMPLE_RATE = 44100
-DURATION    = 2.0        # seconds — exact multiple of mod period (8 Hz → 16 cycles)
+DURATION    = 1.0        # seconds — 90 Hz completes exactly 90 cycles, loops cleanly
 OUT_PATH    = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                            "audio", "mining_laser.wav")
 
@@ -22,21 +19,10 @@ samples = []
 for i in range(int(SAMPLE_RATE * DURATION)):
     t = i / SAMPLE_RATE
 
-    # Low industrial hum (base + 2 harmonics)
-    sig  = 0.40 * math.sin(2 * math.pi *   90 * t)
-    sig += 0.20 * math.sin(2 * math.pi *  180 * t)
-    sig += 0.10 * math.sin(2 * math.pi *  270 * t)
-
-    # Mid laser buzz
-    sig += 0.12 * math.sin(2 * math.pi *  540 * t)
-
-    # High-frequency laser whine with slight FM wobble
-    freq_whine = 1800 + 60 * math.sin(2 * math.pi * 3 * t)
-    sig += 0.08 * math.sin(2 * math.pi * freq_whine * t)
-
-    # Amplitude modulation — 8 Hz "cutting" pulse
-    am   = 0.80 + 0.20 * math.sin(2 * math.pi * 8 * t)
-    sig *= am
+    # Low hum: fundamental + two harmonics
+    sig  = 0.55 * math.sin(2 * math.pi *  90 * t)
+    sig += 0.28 * math.sin(2 * math.pi * 180 * t)
+    sig += 0.17 * math.sin(2 * math.pi * 270 * t)
 
     samples.append(sig)
 
