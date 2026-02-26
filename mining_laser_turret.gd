@@ -5,10 +5,11 @@ extends "res://collector_turret_base.gd"
 
 signal asteroid_mined(hit_point: Vector3)
 
-const SCRAP_SCENE := preload("res://scrap_piece.tscn")
-const MINING_RANGE := 8.0
+const SCRAP_SCENE   := preload("res://scrap_piece.tscn")
+const MINING_SOUND  := preload("res://assets/audio/mining_laser.wav")
+const MINING_RANGE  := 8.0
 const MINING_SCRAP_RATE := 0.4   # Scrap pieces per second
-const LASER_RADIUS := 0.03
+const LASER_RADIUS  := 0.03
 const SCRAP_EJECT_SPEED := 1.2
 
 var _mining_target: StaticBody3D = null
@@ -16,6 +17,7 @@ var _laser_beam: MeshInstance3D = null
 var _laser_material: StandardMaterial3D = null
 var _impact_glow: MeshInstance3D = null
 var _mining_accumulator: float = 0.0
+var _audio: AudioStreamPlayer3D = null
 
 
 func get_turret_name() -> String:
@@ -24,6 +26,14 @@ func get_turret_name() -> String:
 
 func _ready() -> void:
 	_build_visuals()
+	_audio = AudioStreamPlayer3D.new()
+	var looping_stream := MINING_SOUND.duplicate() as AudioStreamWAV
+	looping_stream.loop_mode = AudioStreamWAV.LOOP_FORWARD
+	_audio.stream = looping_stream
+	_audio.volume_db = -6.0
+	_audio.max_distance = 30.0
+	_audio.attenuation_model = AudioStreamPlayer3D.ATTENUATION_INVERSE_DISTANCE
+	add_child(_audio)
 
 
 func _build_visuals() -> void:
@@ -80,7 +90,12 @@ func _update(delta: float) -> void:
 		_laser_beam.visible = false
 		_impact_glow.visible = false
 		_mining_accumulator = 0.0
+		if _audio.playing:
+			_audio.stop()
 		return
+
+	if not _audio.playing:
+		_audio.play()
 
 	# Rotate turret to track asteroid (Y axis locked)
 	var look_target := Vector3(
