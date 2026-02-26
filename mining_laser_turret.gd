@@ -7,6 +7,7 @@ signal asteroid_mined(hit_point: Vector3)
 
 const SCRAP_SCENE   := preload("res://scrap_piece.tscn")
 const MINING_SOUND  := preload("res://assets/audio/mining_laser.wav")
+const BREAK_SOUND   := preload("res://assets/audio/rock_break.wav")
 const MINING_RANGE  := 8.0
 const MINING_SCRAP_RATE := 0.4   # Scrap pieces per second
 const LASER_RADIUS  := 0.03
@@ -18,6 +19,7 @@ var _laser_material: StandardMaterial3D = null
 var _impact_glow: MeshInstance3D = null
 var _mining_accumulator: float = 0.0
 var _audio: AudioStreamPlayer = null
+var _break_audio: AudioStreamPlayer = null
 
 
 func get_turret_name() -> String:
@@ -30,6 +32,11 @@ func _ready() -> void:
 	_audio.stream = MINING_SOUND
 	_audio.volume_db = -6.0
 	add_child(_audio)
+
+	_break_audio = AudioStreamPlayer.new()
+	_break_audio.stream = BREAK_SOUND
+	_break_audio.volume_db = -4.0
+	add_child(_break_audio)
 
 
 func _build_visuals() -> void:
@@ -144,4 +151,5 @@ func _spawn_mined_scrap(hit_point: Vector3) -> void:
 			SCRAP_EJECT_SPEED * 0.6, SCRAP_EJECT_SPEED * 1.4
 		)
 
+	_break_audio.play()
 	asteroid_mined.emit(hit_point)
