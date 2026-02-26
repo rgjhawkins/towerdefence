@@ -4,9 +4,8 @@ Blender 5.x headless script — generates 90 procedural asteroid meshes:
   30 medium → assets/asteroids/asteroid_med_00–29.glb  (radius 1.2 in Godot)
   30 small  → assets/asteroids/asteroid_sml_00–29.glb  (radius 0.6 in Godot)
 
-Each mesh uses two material slots:
-  slot 0 — rocky surface
-  slot 1 — dark crater interior (black + faint purple depth-glow)
+Colour is painted as per-vertex colour using mathutils.noise (two-octave
+Perlin: large-scale patches + fine detail), which exports correctly in GLB.
 
 Run via:
   blender --background --python assets/gen_asteroid.py
@@ -18,6 +17,7 @@ import math
 import os
 import random
 from mathutils import Vector
+from mathutils import noise as mnoise
 
 
 OUT_DIR      = os.path.join(os.path.dirname(os.path.abspath(__file__)), "asteroids")
@@ -55,61 +55,65 @@ def _carve(bm: bmesh.types.BMesh, craters: list) -> None:
                 vert.co += vert_dir * _crater_profile(t) * c["depth"]
 
 
+def _paint_vertex_colors(obj: bpy.types.Object, rng: random.Random) -> None:
+    """Paint two-octave Perlin noise colours onto a vertex colour attribute.
+    This exports correctly in GLB and is read by Godot."""
+    mesh = obj.data
+
+    # Remove any leftover colour attributes
+    while mesh.color_attributes:
+        mesh.color_attributes.remove(mesh.color_attributes[0])
+
+    col_attr = mesh.color_attributes.new(name="Col", type="FLOAT_COLOR", domain="POINT")
+
+    scale_large = rng.uniform(1.5, 3.5)
+    scale_fine  = rng.uniform(5.0, 10.0)
+
+    # Dark and light ends of the colour ramp for this variant
+    dr = rng.uniform(0.02, 0.07);  dg = rng.uniform(0.02, 0.06);  db = rng.uniform(0.01, 0.05)
+    lr = rng.uniform(0.10, 0.18);  lg = rng.uniform(0.08, 0.15);  lb = rng.uniform(0.06, 0.12)
+
+    # Random offset so each variant samples a different region of noise space
+    offset = Vector((rng.uniform(-50.0, 50.0),
+                     rng.uniform(-50.0, 50.0),
+                     rng.uniform(-50.0, 50.0)))
+
+    for i, vert in enumerate(mesh.vertices):
+        pos_large = (vert.co + offset) * scale_large
+        pos_fine  = (vert.co + offset) * scale_fine
+
+        # mnoise.noise() returns roughly -1..1; map to 0..1
+        t_large = mnoise.noise(pos_large) * 0.5 + 0.5
+        t_fine  = mnoise.noise(pos_fine)  * 0.5 + 0.5
+        t = max(0.0, min(1.0, t_large * 0.75 + t_fine * 0.25))
+
+        col_attr.data[i].color = (
+            dr + (lr - dr) * t,
+            dg + (lg - dg) * t,
+            db + (lb - db) * t,
+            1.0,
+        )
+
+
 def _make_rock_material(name: str, rng: random.Random) -> bpy.types.Material:
+    """Simple Principled BSDF that reads colour from the vertex colour attribute."""
     mat   = bpy.data.materials.new(name)
     mat.use_nodes = True
     nodes = mat.node_tree.nodes
     links = mat.node_tree.links
     nodes.clear()
 
-    # Output + shader
     out  = nodes.new("ShaderNodeOutputMaterial")
     bsdf = nodes.new("ShaderNodeBsdfPrincipled")
     bsdf.inputs["Roughness"].default_value = rng.uniform(0.85, 0.97)
     bsdf.inputs["Metallic"].default_value  = rng.uniform(0.0, 0.05)
     links.new(bsdf.outputs["BSDF"], out.inputs["Surface"])
 
-    # Object-space coords so textures rotate with the asteroid
-    tex_coord = nodes.new("ShaderNodeTexCoord")
-    mapping   = nodes.new("ShaderNodeMapping")
-    s = rng.uniform(0.8, 1.5)
-    mapping.inputs["Scale"].default_value = (s, s, s)
-    links.new(tex_coord.outputs["Object"], mapping.inputs["Vector"])
-
-    # Large-scale colour noise → colour ramp (dark stone to lighter grey-brown)
-    n_color = nodes.new("ShaderNodeTexNoise")
-    n_color.inputs["Scale"].default_value      = rng.uniform(1.5, 3.5)
-    n_color.inputs["Detail"].default_value     = 8.0
-    n_color.inputs["Roughness"].default_value  = 0.65
-    n_color.inputs["Distortion"].default_value = rng.uniform(0.2, 0.6)
-    links.new(mapping.outputs["Vector"], n_color.inputs["Vector"])
-
-    ramp = nodes.new("ShaderNodeValToRGB")
-    rd, gd, bd = rng.uniform(0.02, 0.07), rng.uniform(0.02, 0.06), rng.uniform(0.01, 0.05)
-    rl, gl, bl = rng.uniform(0.10, 0.18), rng.uniform(0.08, 0.15), rng.uniform(0.06, 0.12)
-    ramp.color_ramp.elements[0].color    = (rd, gd, bd, 1.0)
-    ramp.color_ramp.elements[0].position = rng.uniform(0.0, 0.25)
-    ramp.color_ramp.elements[1].color    = (rl, gl, bl, 1.0)
-    ramp.color_ramp.elements[1].position = rng.uniform(0.55, 1.0)
-    links.new(n_color.outputs["Fac"], ramp.inputs["Fac"])
-    links.new(ramp.outputs["Color"],  bsdf.inputs["Base Color"])
-
-    # Fine-detail noise → bump map for micro surface texture
-    n_bump = nodes.new("ShaderNodeTexNoise")
-    n_bump.inputs["Scale"].default_value      = rng.uniform(6.0, 14.0)
-    n_bump.inputs["Detail"].default_value     = 12.0
-    n_bump.inputs["Roughness"].default_value  = 0.75
-    n_bump.inputs["Distortion"].default_value = 0.3
-    links.new(mapping.outputs["Vector"], n_bump.inputs["Vector"])
-
-    bump = nodes.new("ShaderNodeBump")
-    bump.inputs["Strength"].default_value  = rng.uniform(0.5, 1.0)
-    bump.inputs["Distance"].default_value  = 0.02
-    links.new(n_bump.outputs["Fac"],   bump.inputs["Height"])
-    links.new(bump.outputs["Normal"],  bsdf.inputs["Normal"])
+    vcol = nodes.new("ShaderNodeVertexColor")
+    vcol.layer_name = "Col"
+    links.new(vcol.outputs["Color"], bsdf.inputs["Base Color"])
 
     return mat
-
 
 
 def _cleanup() -> None:
@@ -180,6 +184,7 @@ def generate(index: int) -> None:
     _carve(bm, craters)
     bm.to_mesh(obj.data);  bm.free();  obj.data.update()
 
+    _paint_vertex_colors(obj, rng)
     bpy.ops.object.shade_smooth()
 
     obj.data.materials.append(_make_rock_material(f"AsteroidRock_{index:02d}", rng))
@@ -241,6 +246,7 @@ def generate_tier(index: int, prefix: str, seed_offset: int,
     _carve(bm, craters)
     bm.to_mesh(obj.data);  bm.free();  obj.data.update()
 
+    _paint_vertex_colors(obj, rng)
     bpy.ops.object.shade_smooth()
 
     obj.data.materials.append(_make_rock_material(f"Rock_{prefix}_{index:02d}", rng))
