@@ -155,7 +155,7 @@ func _spawn_mined_scrap(hit_point: Vector3) -> void:
 	asteroid_mined.emit(hit_point)
 
 	# Deplete scrap from the asteroid; split it when exhausted
-	var remaining: int = _mining_target.get_meta("scrap_remaining", 1) - 1
+	var remaining: int = _mining_target.get_meta("scrap_remaining", 1) - count
 	_mining_target.set_meta("scrap_remaining", remaining)
 	if remaining <= 0:
 		var field := get_tree().get_first_node_in_group("asteroid_fields") as AsteroidField

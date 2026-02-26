@@ -7,7 +7,7 @@ const CLUSTER_SPREAD := 10.0
 const CLUSTER_CENTRE := Vector3(0.0, 1.5, -18.0)
 const EXPLOSION_SCENE := preload("res://explosion.tscn")
 
-const SCRAP_CAPACITY := {"large": 100, "medium": 50, "small": 25}
+const SCRAP_CAPACITY := {"large": 50, "medium": 25, "small": 12}
 
 # Full pool of [path, radius, tier] — 30 large + 30 medium + 30 small = 90 variants
 var _pool:        Array = []
@@ -188,11 +188,16 @@ func deplete_asteroid(body: StaticBody3D) -> void:
 	# Split into two of the next size down
 	match tier:
 		"large":
-			_spawn_asteroid_by_tier(pos + Vector3(randf_range(-1.5, 1.5), 0.0, randf_range(-1.5, 1.5)), "medium")
-			_spawn_asteroid_by_tier(pos + Vector3(randf_range(-1.5, 1.5), 0.0, randf_range(-1.5, 1.5)), "medium")
+			# Place the two medium fragments on opposite sides so they never overlap
+			# medium radius = 1.2, so offset each by 1.2 + 0.8 = 2.0 from centre
+			var split_dir := Vector3(randf_range(-1.0, 1.0), 0.0, randf_range(-1.0, 1.0)).normalized()
+			_spawn_asteroid_by_tier(pos + split_dir * 2.0, "medium")
+			_spawn_asteroid_by_tier(pos - split_dir * 2.0, "medium")
 		"medium":
-			_spawn_asteroid_by_tier(pos + Vector3(randf_range(-1.0, 1.0), 0.0, randf_range(-1.0, 1.0)), "small")
-			_spawn_asteroid_by_tier(pos + Vector3(randf_range(-1.0, 1.0), 0.0, randf_range(-1.0, 1.0)), "small")
+			# small radius = 0.6, so offset each by 0.6 + 0.8 = 1.4 from centre
+			var split_dir := Vector3(randf_range(-1.0, 1.0), 0.0, randf_range(-1.0, 1.0)).normalized()
+			_spawn_asteroid_by_tier(pos + split_dir * 1.4, "small")
+			_spawn_asteroid_by_tier(pos - split_dir * 1.4, "small")
 		# small → crumbles to dust, nothing spawns
 
 
