@@ -148,6 +148,11 @@ func _do_orbit(delta: float) -> void:
 	if _orbit_timer <= 0.0:
 		_state = State.RETURNING
 		return
+	# Re-engage if a ship enters threat range while patrolling
+	var collector := _find_nearest_collector()
+	if collector and _home_pos.distance_to(collector.global_position) <= ABANDON_RANGE:
+		_state = State.ATTACKING
+		return
 	var outward := (global_position - _home_pos).normalized()
 	var tangent := _orbit_normal.cross(outward).normalized()
 	# Pull toward the asteroid when the bug has drifted far out (e.g. after a long chase)
