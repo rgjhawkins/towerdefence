@@ -4,7 +4,7 @@ extends Node3D
 const ASTEROID_RADIUS := 2.0
 const NUM_HOLES := 3
 
-var _mesh: MeshInstance3D
+var _mesh: Node3D
 var _body: StaticBody3D
 var _hole_markers: Array[Node3D] = []
 
@@ -18,16 +18,9 @@ func _ready() -> void:
 	_body.set_meta("radius", ASTEROID_RADIUS)
 	add_child(_body)
 
-	var mesh_inst := MeshInstance3D.new()
-	var sphere := SphereMesh.new()
-	sphere.radius = ASTEROID_RADIUS
-	sphere.height = ASTEROID_RADIUS * 2.0
-	var mat := StandardMaterial3D.new()
-	mat.albedo_color = Color(0.3, 0.25, 0.2, 1)
-	mat.roughness = 1.0
-	sphere.material = mat
-	mesh_inst.mesh = sphere
-	mesh_inst.scale = Vector3(1.2, 0.8, 0.9)
+	var asteroid_scene: PackedScene = load("res://assets/asteroid.glb")
+	var mesh_inst := asteroid_scene.instantiate() as Node3D
+	mesh_inst.scale = Vector3.ONE * ASTEROID_RADIUS
 	_body.add_child(mesh_inst)
 	_mesh = mesh_inst
 
