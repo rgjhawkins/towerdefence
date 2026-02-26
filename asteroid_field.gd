@@ -37,9 +37,9 @@ func _build_pool() -> void:
 func _spawn_cluster() -> void:
 	var placed: Array = []  # Array of {pos: Vector3, radius: float}
 	for _i in NUM_ASTEROIDS:
-		var entry   := _pool[randi() % _pool.size()]
-		var path    := entry[0] as String
-		var radius  := entry[1] as float
+		var entry:  Array  = _pool[randi() % _pool.size()]
+		var path:   String = entry[0]
+		var radius: float  = entry[1]
 		var pos     := _pick_position(placed, radius)
 		placed.append({"pos": pos, "radius": radius})
 		_spawn_asteroid(pos, path, radius)
@@ -99,8 +99,8 @@ func _spawn_asteroid(pos: Vector3, path: String, radius: float) -> void:
 	body.add_child(col)
 
 	_rot_axes.append(Vector3(randf_range(-1.0, 1.0),
-	                         randf_range(-1.0, 1.0),
-	                         randf_range(-1.0, 1.0)).normalized())
+							 randf_range(-1.0, 1.0),
+							 randf_range(-1.0, 1.0)).normalized())
 	_rot_speeds.append(randf_range(0.25, 0.65))
 
 	_holes_by_body[body] = []
