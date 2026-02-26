@@ -98,18 +98,30 @@ func _on_collector_health_changed(current: float, _maximum: float) -> void:
 		hud.update_collector_health(current)
 
 
-func _on_asteroid_mined(_spawn_pos: Vector3) -> void:
-	# Use the nearest hole on the asteroid as the spawn origin
+func _on_asteroid_mined(hit_point: Vector3) -> void:
 	var field := get_tree().get_first_node_in_group("asteroid_fields") as AsteroidField
-	var hole_pos := _spawn_pos
-	if field:
-		hole_pos = field.get_random_hole_position()
+
+	# Identify which asteroid body was actually struck
+	var mined_body: StaticBody3D = null
+	var nearest_dist := INF
+	for node in get_tree().get_nodes_in_group("asteroids"):
+		var asteroid := node as StaticBody3D
+		if not asteroid:
+			continue
+		var d := hit_point.distance_to(asteroid.global_position)
+		if d < nearest_dist:
+			nearest_dist = d
+			mined_body = asteroid
 
 	var count := randi_range(10, 20)
 	for i in count:
 		var bug := BugAlien.new()
-		var marker := field.get_random_hole_marker() if field else null
-		var spawn := marker.global_position if marker else hole_pos
+		var marker: Node3D = null
+		if field and mined_body:
+			marker = field.get_hole_marker_for_asteroid(mined_body)
+		elif field:
+			marker = field.get_random_hole_marker()
+		var spawn := marker.global_position if marker else hit_point
 		var offset := Vector3(randf_range(-0.2, 0.2), randf_range(0.0, 0.3), randf_range(-0.2, 0.2))
 		add_child(bug)
 		bug.global_position = spawn + offset

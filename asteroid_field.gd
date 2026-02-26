@@ -9,10 +9,11 @@ const CLUSTER_SPREAD   := 10.0   # Search radius around the cluster centre
 const MIN_SEPARATION   := ASTEROID_RADIUS * 2.8   # ~5.6 units — prevents visual overlap
 
 # Per-asteroid state
-var _bodies:     Array[StaticBody3D] = []
-var _rot_axes:   Array[Vector3]      = []
-var _rot_speeds: Array[float]        = []
-var _hole_markers: Array[Node3D]     = []
+var _bodies:        Array[StaticBody3D] = []
+var _rot_axes:      Array[Vector3]      = []
+var _rot_speeds:    Array[float]        = []
+var _hole_markers:  Array[Node3D]       = []
+var _holes_by_body: Dictionary          = {}  # StaticBody3D → Array[Node3D]
 
 const CLUSTER_CENTRE := Vector3(0.0, 1.5, -18.0)
 
@@ -88,16 +89,17 @@ func _spawn_asteroid(pos: Vector3) -> void:
 
 	# Each asteroid spins on a slightly different axis and speed
 	_rot_axes.append(Vector3(randf_range(-1.0, 1.0),
-	                         randf_range(-1.0, 1.0),
-	                         randf_range(-1.0, 1.0)).normalized())
+							 randf_range(-1.0, 1.0),
+							 randf_range(-1.0, 1.0)).normalized())
 	_rot_speeds.append(randf_range(0.25, 0.65))
 
-	_create_holes(mesh_inst)
+	_holes_by_body[body] = []
+	_create_holes(mesh_inst, body)
 
 
 # ── Holes / spawn markers ─────────────────────────────────────────────────────
 
-func _create_holes(mesh_root: Node3D) -> void:
+func _create_holes(mesh_root: Node3D, body: StaticBody3D) -> void:
 	for i in NUM_HOLES:
 		var angle     := (float(i) / NUM_HOLES) * TAU + randf_range(-0.2, 0.2)
 		var elevation := randf_range(-0.3, 0.3)
@@ -106,7 +108,9 @@ func _create_holes(mesh_root: Node3D) -> void:
 			sin(elevation),
 			sin(angle) * cos(elevation)
 		).normalized()
-		_hole_markers.append(_add_hole(mesh_root, dir))
+		var marker := _add_hole(mesh_root, dir)
+		_hole_markers.append(marker)
+		_holes_by_body[body].append(marker)
 
 
 func _add_hole(mesh_root: Node3D, surface_dir: Vector3) -> Node3D:
@@ -133,6 +137,15 @@ func get_random_hole_marker() -> Node3D:
 	if _hole_markers.is_empty():
 		return null
 	return _hole_markers[randi() % _hole_markers.size()]
+
+
+## Returns a random hole marker belonging to a specific asteroid body.
+## Falls back to any random hole if the body is not found.
+func get_hole_marker_for_asteroid(body: StaticBody3D) -> Node3D:
+	if body in _holes_by_body and not _holes_by_body[body].is_empty():
+		var holes: Array = _holes_by_body[body]
+		return holes[randi() % holes.size()]
+	return get_random_hole_marker()
 
 
 # ── Update ────────────────────────────────────────────────────────────────────
