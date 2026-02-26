@@ -1,5 +1,5 @@
 class_name AsteroidField
-extends Node3D
+extends SpaceAnomaly
 
 const NUM_ASTEROIDS  := 5
 const NUM_HOLES      := 3
@@ -24,7 +24,7 @@ var _holes_by_body: Dictionary          = {}  # StaticBody3D → Array[Node3D]
 
 
 func _ready() -> void:
-	add_to_group("asteroid_fields")
+	add_to_group("space_anomalies")
 	_build_pool()
 	_spawn_cluster()
 
@@ -147,33 +147,26 @@ func _add_hole(mesh_root: Node3D, surface_dir: Vector3, radius: float) -> Node3D
 	return marker
 
 
-## Returns the world position of a random hole across all asteroids in the cluster.
-func get_random_hole_position() -> Vector3:
-	if _hole_markers.is_empty():
-		return CLUSTER_CENTRE
-	return _hole_markers[randi() % _hole_markers.size()].global_position
-
-
-## Returns a random hole marker node (position updates live as its asteroid rotates).
-func get_random_hole_marker() -> Node3D:
+## Returns a random spawn marker node (position updates live as its asteroid rotates).
+func get_random_spawn_marker() -> Node3D:
 	if _hole_markers.is_empty():
 		return null
 	return _hole_markers[randi() % _hole_markers.size()]
 
 
-## Returns a random hole marker belonging to a specific asteroid body.
-## Falls back to any random hole if the body is not found.
-func get_hole_marker_for_asteroid(body: StaticBody3D) -> Node3D:
+## Returns a spawn marker belonging to a specific asteroid body.
+## Falls back to any random marker if the body is not found.
+func get_spawn_marker_for_body(body: StaticBody3D) -> Node3D:
 	if body in _holes_by_body and not _holes_by_body[body].is_empty():
 		var holes: Array = _holes_by_body[body]
 		return holes[randi() % holes.size()]
-	return get_random_hole_marker()
+	return get_random_spawn_marker()
 
 
 # ── Depletion & splitting ─────────────────────────────────────────────────────
 
-## Called by MiningLaserTurret when an asteroid's scrap hits zero.
-func deplete_asteroid(body: StaticBody3D) -> void:
+## Override: split or crumble the depleted asteroid body.
+func deplete_body(body: StaticBody3D) -> void:
 	var pos  := body.global_position
 	var tier: String = body.get_meta("tier", "small")
 

@@ -158,7 +158,7 @@ func _spawn_mined_scrap(hit_point: Vector3) -> void:
 	var remaining: int = _mining_target.get_meta("scrap_remaining", 1) - count
 	_mining_target.set_meta("scrap_remaining", remaining)
 	if remaining <= 0:
-		var field := get_tree().get_first_node_in_group("asteroid_fields") as AsteroidField
+		var field := get_tree().get_first_node_in_group("space_anomalies") as SpaceAnomaly
 		if field:
-			field.deplete_asteroid(_mining_target)
+			field.deplete_body(_mining_target)
 		_mining_target = null

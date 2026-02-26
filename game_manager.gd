@@ -99,7 +99,7 @@ func _on_collector_health_changed(current: float, _maximum: float) -> void:
 
 
 func _on_asteroid_mined(hit_point: Vector3) -> void:
-	var field := get_tree().get_first_node_in_group("asteroid_fields") as AsteroidField
+	var field := get_tree().get_first_node_in_group("space_anomalies") as SpaceAnomaly
 
 	# Identify which asteroid body was actually struck
 	var mined_body: StaticBody3D = null
@@ -118,9 +118,9 @@ func _on_asteroid_mined(hit_point: Vector3) -> void:
 		var bug := BugAlien.new()
 		var marker: Node3D = null
 		if field and mined_body:
-			marker = field.get_hole_marker_for_asteroid(mined_body)
+			marker = field.get_spawn_marker_for_body(mined_body)
 		elif field:
-			marker = field.get_random_hole_marker()
+			marker = field.get_random_spawn_marker()
 		var spawn := marker.global_position if marker else hit_point
 		var offset := Vector3(randf_range(-0.2, 0.2), randf_range(0.0, 0.3), randf_range(-0.2, 0.2))
 		add_child(bug)
