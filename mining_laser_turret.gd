@@ -17,7 +17,7 @@ var _laser_beam: MeshInstance3D = null
 var _laser_material: StandardMaterial3D = null
 var _impact_glow: MeshInstance3D = null
 var _mining_accumulator: float = 0.0
-var _audio: AudioStreamPlayer3D = null
+var _audio: AudioStreamPlayer = null
 
 
 func get_turret_name() -> String:
@@ -26,13 +26,9 @@ func get_turret_name() -> String:
 
 func _ready() -> void:
 	_build_visuals()
-	_audio = AudioStreamPlayer3D.new()
-	var looping_stream := MINING_SOUND.duplicate() as AudioStreamWAV
-	looping_stream.loop_mode = AudioStreamWAV.LOOP_FORWARD
-	_audio.stream = looping_stream
+	_audio = AudioStreamPlayer.new()
+	_audio.stream = MINING_SOUND
 	_audio.volume_db = -6.0
-	_audio.max_distance = 30.0
-	_audio.attenuation_model = AudioStreamPlayer3D.ATTENUATION_INVERSE_DISTANCE
 	add_child(_audio)
 
 
