@@ -56,16 +56,58 @@ def _carve(bm: bmesh.types.BMesh, craters: list) -> None:
 
 
 def _make_rock_material(name: str, rng: random.Random) -> bpy.types.Material:
-    mat  = bpy.data.materials.new(name)
+    mat   = bpy.data.materials.new(name)
     mat.use_nodes = True
-    bsdf = mat.node_tree.nodes.get("Principled BSDF")
-    if bsdf:
-        r = rng.uniform(0.14, 0.22)
-        g = rng.uniform(0.12, 0.18)
-        b = rng.uniform(0.10, 0.18)
-        bsdf.inputs["Base Color"].default_value = (r, g, b, 1.0)
-        bsdf.inputs["Roughness"].default_value  = rng.uniform(0.88, 0.97)
-        bsdf.inputs["Metallic"].default_value   = rng.uniform(0.0, 0.08)
+    nodes = mat.node_tree.nodes
+    links = mat.node_tree.links
+    nodes.clear()
+
+    # Output + shader
+    out  = nodes.new("ShaderNodeOutputMaterial")
+    bsdf = nodes.new("ShaderNodeBsdfPrincipled")
+    bsdf.inputs["Roughness"].default_value = rng.uniform(0.85, 0.97)
+    bsdf.inputs["Metallic"].default_value  = rng.uniform(0.0, 0.05)
+    links.new(bsdf.outputs["BSDF"], out.inputs["Surface"])
+
+    # Object-space coords so textures rotate with the asteroid
+    tex_coord = nodes.new("ShaderNodeTexCoord")
+    mapping   = nodes.new("ShaderNodeMapping")
+    s = rng.uniform(0.8, 1.5)
+    mapping.inputs["Scale"].default_value = (s, s, s)
+    links.new(tex_coord.outputs["Object"], mapping.inputs["Vector"])
+
+    # Large-scale colour noise → colour ramp (dark stone to lighter grey-brown)
+    n_color = nodes.new("ShaderNodeTexNoise")
+    n_color.inputs["Scale"].default_value      = rng.uniform(1.5, 3.5)
+    n_color.inputs["Detail"].default_value     = 8.0
+    n_color.inputs["Roughness"].default_value  = 0.65
+    n_color.inputs["Distortion"].default_value = rng.uniform(0.2, 0.6)
+    links.new(mapping.outputs["Vector"], n_color.inputs["Vector"])
+
+    ramp = nodes.new("ShaderNodeValToRGB")
+    rd, gd, bd = rng.uniform(0.07, 0.15), rng.uniform(0.06, 0.12), rng.uniform(0.05, 0.11)
+    rl, gl, bl = rng.uniform(0.22, 0.38), rng.uniform(0.18, 0.30), rng.uniform(0.14, 0.25)
+    ramp.color_ramp.elements[0].color    = (rd, gd, bd, 1.0)
+    ramp.color_ramp.elements[0].position = rng.uniform(0.0, 0.25)
+    ramp.color_ramp.elements[1].color    = (rl, gl, bl, 1.0)
+    ramp.color_ramp.elements[1].position = rng.uniform(0.55, 1.0)
+    links.new(n_color.outputs["Fac"], ramp.inputs["Fac"])
+    links.new(ramp.outputs["Color"],  bsdf.inputs["Base Color"])
+
+    # Fine-detail noise → bump map for micro surface texture
+    n_bump = nodes.new("ShaderNodeTexNoise")
+    n_bump.inputs["Scale"].default_value      = rng.uniform(6.0, 14.0)
+    n_bump.inputs["Detail"].default_value     = 12.0
+    n_bump.inputs["Roughness"].default_value  = 0.75
+    n_bump.inputs["Distortion"].default_value = 0.3
+    links.new(mapping.outputs["Vector"], n_bump.inputs["Vector"])
+
+    bump = nodes.new("ShaderNodeBump")
+    bump.inputs["Strength"].default_value  = rng.uniform(0.5, 1.0)
+    bump.inputs["Distance"].default_value  = 0.02
+    links.new(n_bump.outputs["Fac"],   bump.inputs["Height"])
+    links.new(bump.outputs["Normal"],  bsdf.inputs["Normal"])
+
     return mat
 
 
