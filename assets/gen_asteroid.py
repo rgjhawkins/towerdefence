@@ -85,26 +85,13 @@ def _make_rock_material(name: str, rng: random.Random) -> bpy.types.Material:
 
 
 def _make_crater_material(name: str) -> bpy.types.Material:
-    """Near-black crater floor with a faint purple depth-glow."""
+    """Pure black crater floor."""
     mat  = bpy.data.materials.new(name)
     mat.use_nodes = True
-    tree = mat.node_tree
-    bsdf = tree.nodes.get("Principled BSDF")
-    bsdf.inputs["Base Color"].default_value = (0.02, 0.01, 0.02, 1.0)
+    bsdf = mat.node_tree.nodes.get("Principled BSDF")
+    bsdf.inputs["Base Color"].default_value = (0.0, 0.0, 0.0, 1.0)
     bsdf.inputs["Roughness"].default_value  = 1.0
     bsdf.inputs["Metallic"].default_value   = 0.0
-
-    em  = tree.nodes.new("ShaderNodeEmission")
-    em.inputs["Color"].default_value    = (0.12, 0.0, 0.18, 1.0)
-    em.inputs["Strength"].default_value = 0.35
-
-    mix = tree.nodes.new("ShaderNodeMixShader")
-    mix.inputs["Fac"].default_value = 0.18
-
-    out = tree.nodes.get("Material Output")
-    tree.links.new(bsdf.outputs["BSDF"],      mix.inputs[1])
-    tree.links.new(em.outputs["Emission"],     mix.inputs[2])
-    tree.links.new(mix.outputs["Shader"],      out.inputs["Surface"])
     return mat
 
 
