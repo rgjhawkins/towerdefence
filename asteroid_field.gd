@@ -18,7 +18,8 @@ func _ready() -> void:
 	_body.set_meta("radius", ASTEROID_RADIUS)
 	add_child(_body)
 
-	var asteroid_scene: PackedScene = load("res://assets/asteroid.glb")
+	var variant := randi() % 30
+	var asteroid_scene: PackedScene = load("res://assets/asteroids/asteroid_%02d.glb" % variant)
 	var mesh_inst := asteroid_scene.instantiate() as Node3D
 	mesh_inst.scale = Vector3.ONE * ASTEROID_RADIUS
 	_body.add_child(mesh_inst)
