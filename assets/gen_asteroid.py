@@ -85,8 +85,8 @@ def _make_rock_material(name: str, rng: random.Random) -> bpy.types.Material:
     links.new(mapping.outputs["Vector"], n_color.inputs["Vector"])
 
     ramp = nodes.new("ShaderNodeValToRGB")
-    rd, gd, bd = rng.uniform(0.07, 0.15), rng.uniform(0.06, 0.12), rng.uniform(0.05, 0.11)
-    rl, gl, bl = rng.uniform(0.22, 0.38), rng.uniform(0.18, 0.30), rng.uniform(0.14, 0.25)
+    rd, gd, bd = rng.uniform(0.02, 0.07), rng.uniform(0.02, 0.06), rng.uniform(0.01, 0.05)
+    rl, gl, bl = rng.uniform(0.10, 0.18), rng.uniform(0.08, 0.15), rng.uniform(0.06, 0.12)
     ramp.color_ramp.elements[0].color    = (rd, gd, bd, 1.0)
     ramp.color_ramp.elements[0].position = rng.uniform(0.0, 0.25)
     ramp.color_ramp.elements[1].color    = (rl, gl, bl, 1.0)
