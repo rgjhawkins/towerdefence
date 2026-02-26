@@ -35,12 +35,11 @@ def _random_sphere_dir(rng: random.Random) -> Vector:
 
 
 def _crater_profile(t: float) -> float:
-    """Signed displacement at normalised distance t (0=centre, 1=edge)."""
+    """Smooth bowl depression at normalised distance t (0=centre, 1=edge).
+    Pure cosine falloff — no raised rim, so no star-shaped topology artefacts."""
     if t >= 1.0:
         return 0.0
-    depression = -(1.0 - t ** 1.4) ** 0.6
-    rim        =  0.35 * math.sin(t * math.pi) ** 2
-    return depression + rim
+    return -(math.cos(t * math.pi * 0.5)) ** 2
 
 
 def _carve_and_mark(bm: bmesh.types.BMesh, craters: list) -> None:
