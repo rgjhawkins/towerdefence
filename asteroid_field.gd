@@ -25,9 +25,22 @@ func _ready() -> void:
 	_mesh = mesh_inst
 
 	var col := CollisionShape3D.new()
-	var shape := SphereShape3D.new()
-	shape.radius = ASTEROID_RADIUS
-	col.shape = shape
+	var mi: MeshInstance3D = null
+	for child in mesh_inst.get_children():
+		if child is MeshInstance3D:
+			mi = child
+			break
+	if mi:
+		var trimesh := mi.mesh.create_trimesh_shape() as ConcavePolygonShape3D
+		var faces := trimesh.get_faces()
+		for i in faces.size():
+			faces[i] *= ASTEROID_RADIUS
+		trimesh.set_faces(faces)
+		col.shape = trimesh
+	else:
+		var sphere := SphereShape3D.new()
+		sphere.radius = ASTEROID_RADIUS
+		col.shape = sphere
 	_body.add_child(col)
 
 	_create_holes()
@@ -60,43 +73,6 @@ func _add_hole(surface_dir: Vector3) -> Node3D:
 
 	_mesh.add_child(marker)
 
-	# Dark cavity — very dark, slightly warm to suggest depth
-	var cavity_mat := StandardMaterial3D.new()
-	cavity_mat.albedo_color = Color(0.02, 0.01, 0.01)
-	cavity_mat.emission_enabled = true
-	cavity_mat.emission = Color(0.08, 0.03, 0.0)
-	cavity_mat.emission_energy_multiplier = 0.8
-
-	var cavity_mesh := SphereMesh.new()
-	cavity_mesh.radius = 0.28
-	cavity_mesh.height = 0.12
-	cavity_mesh.radial_segments = 10
-	cavity_mesh.rings = 4
-	cavity_mesh.material = cavity_mat
-
-	var cavity_inst := MeshInstance3D.new()
-	cavity_inst.mesh = cavity_mesh
-	marker.add_child(cavity_inst)
-
-	# Warm glow rim — orange/red to suggest heat or bioluminescence inside
-	var rim_mat := StandardMaterial3D.new()
-	rim_mat.albedo_color = Color(0.5, 0.2, 0.05, 0.7)
-	rim_mat.emission_enabled = true
-	rim_mat.emission = Color(0.7, 0.25, 0.02)
-	rim_mat.emission_energy_multiplier = 2.0
-	rim_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-
-	var rim_mesh := SphereMesh.new()
-	rim_mesh.radius = 0.36
-	rim_mesh.height = 0.07
-	rim_mesh.radial_segments = 10
-	rim_mesh.rings = 3
-	rim_mesh.material = rim_mat
-
-	var rim_inst := MeshInstance3D.new()
-	rim_inst.mesh = rim_mesh
-	marker.add_child(rim_inst)
-
 	return marker
 
 
@@ -115,4 +91,4 @@ func get_random_hole_marker() -> Node3D:
 
 
 func _process(delta: float) -> void:
-	_mesh.rotate(Vector3(0.3, 1.0, 0.2).normalized(), 0.5 * delta)
+	_body.rotate(Vector3(0.3, 1.0, 0.2).normalized(), 0.5 * delta)
