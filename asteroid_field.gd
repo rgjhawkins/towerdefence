@@ -5,9 +5,15 @@ const NUM_ASTEROIDS  := 5
 const NUM_HOLES      := 3
 const CLUSTER_SPREAD := 10.0
 const CLUSTER_CENTRE := Vector3(0.0, 1.5, -18.0)
+const EXPLOSION_SCENE := preload("res://explosion.tscn")
 
-# Full pool of [path, radius] — 30 large + 30 medium + 30 small = 90 variants
-var _pool: Array = []
+const SCRAP_CAPACITY := {"large": 100, "medium": 50, "small": 25}
+
+# Full pool of [path, radius, tier] — 30 large + 30 medium + 30 small = 90 variants
+var _pool:        Array = []
+var _pool_large:  Array = []
+var _pool_medium: Array = []
+var _pool_small:  Array = []
 
 # Per-asteroid state
 var _bodies:        Array[StaticBody3D] = []
@@ -25,11 +31,14 @@ func _ready() -> void:
 
 func _build_pool() -> void:
 	for i in 30:
-		_pool.append(["res://assets/asteroids/asteroid_%02d.glb" % i,     2.0])
+		var e := ["res://assets/asteroids/asteroid_%02d.glb" % i,     2.0, "large"]
+		_pool.append(e);  _pool_large.append(e)
 	for i in 30:
-		_pool.append(["res://assets/asteroids/asteroid_med_%02d.glb" % i, 1.2])
+		var e := ["res://assets/asteroids/asteroid_med_%02d.glb" % i, 1.2, "medium"]
+		_pool.append(e);  _pool_medium.append(e)
 	for i in 30:
-		_pool.append(["res://assets/asteroids/asteroid_sml_%02d.glb" % i, 0.6])
+		var e := ["res://assets/asteroids/asteroid_sml_%02d.glb" % i, 0.6, "small"]
+		_pool.append(e);  _pool_small.append(e)
 
 
 # ── Cluster spawning ──────────────────────────────────────────────────────────
@@ -40,9 +49,10 @@ func _spawn_cluster() -> void:
 		var entry:  Array  = _pool[randi() % _pool.size()]
 		var path:   String = entry[0]
 		var radius: float  = entry[1]
+		var tier:   String = entry[2]
 		var pos     := _pick_position(placed, radius)
 		placed.append({"pos": pos, "radius": radius})
-		_spawn_asteroid(pos, path, radius)
+		_spawn_asteroid(pos, path, radius, tier)
 
 
 func _pick_position(placed: Array, new_radius: float) -> Vector3:
@@ -65,11 +75,13 @@ func _pick_position(placed: Array, new_radius: float) -> Vector3:
 	return CLUSTER_CENTRE + Vector3(placed.size() * (new_radius * 2.0 + 1.0), 0.0, 0.0)
 
 
-func _spawn_asteroid(pos: Vector3, path: String, radius: float) -> void:
+func _spawn_asteroid(pos: Vector3, path: String, radius: float, tier: String) -> void:
 	var body := StaticBody3D.new()
 	body.position = pos
 	body.add_to_group("asteroids")
 	body.set_meta("radius", radius)
+	body.set_meta("tier", tier)
+	body.set_meta("scrap_remaining", SCRAP_CAPACITY[tier])
 	add_child(body)
 	_bodies.append(body)
 
@@ -156,6 +168,51 @@ func get_hole_marker_for_asteroid(body: StaticBody3D) -> Node3D:
 		var holes: Array = _holes_by_body[body]
 		return holes[randi() % holes.size()]
 	return get_random_hole_marker()
+
+
+# ── Depletion & splitting ─────────────────────────────────────────────────────
+
+## Called by MiningLaserTurret when an asteroid's scrap hits zero.
+func deplete_asteroid(body: StaticBody3D) -> void:
+	var pos  := body.global_position
+	var tier: String = body.get_meta("tier", "small")
+
+	# Dust/explosion at the break point
+	var exp := EXPLOSION_SCENE.instantiate() as Node3D
+	get_tree().root.add_child(exp)
+	exp.global_position = pos
+
+	_remove_body(body)
+	body.queue_free()
+
+	# Split into two of the next size down
+	match tier:
+		"large":
+			_spawn_asteroid_by_tier(pos + Vector3(randf_range(-1.5, 1.5), 0.0, randf_range(-1.5, 1.5)), "medium")
+			_spawn_asteroid_by_tier(pos + Vector3(randf_range(-1.5, 1.5), 0.0, randf_range(-1.5, 1.5)), "medium")
+		"medium":
+			_spawn_asteroid_by_tier(pos + Vector3(randf_range(-1.0, 1.0), 0.0, randf_range(-1.0, 1.0)), "small")
+			_spawn_asteroid_by_tier(pos + Vector3(randf_range(-1.0, 1.0), 0.0, randf_range(-1.0, 1.0)), "small")
+		# small → crumbles to dust, nothing spawns
+
+
+func _spawn_asteroid_by_tier(pos: Vector3, tier: String) -> void:
+	var pool: Array = _pool_large if tier == "large" else (_pool_medium if tier == "medium" else _pool_small)
+	var entry: Array = pool[randi() % pool.size()]
+	_spawn_asteroid(pos, entry[0], entry[1], tier)
+
+
+func _remove_body(body: StaticBody3D) -> void:
+	var idx := _bodies.find(body)
+	if idx == -1:
+		return
+	_bodies.remove_at(idx)
+	_rot_axes.remove_at(idx)
+	_rot_speeds.remove_at(idx)
+	if body in _holes_by_body:
+		for marker in _holes_by_body[body]:
+			_hole_markers.erase(marker)
+		_holes_by_body.erase(body)
 
 
 # ── Update ────────────────────────────────────────────────────────────────────
