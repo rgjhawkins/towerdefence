@@ -42,31 +42,17 @@ def _crater_profile(t: float) -> float:
     return -(math.cos(t * math.pi * 0.5)) ** 2
 
 
-def _carve_and_mark(bm: bmesh.types.BMesh, craters: list) -> None:
-    """Displace vertices into crater shapes and assign material slot 1 to
-    faces that sit inside crater depressions (average darkness > threshold)."""
+def _carve(bm: bmesh.types.BMesh, craters: list) -> None:
+    """Displace vertices into crater shapes."""
     bm.verts.ensure_lookup_table()
-    vert_darkness = [0.0] * len(bm.verts)
-
-    for i, vert in enumerate(bm.verts):
+    for vert in bm.verts:
         vert_dir = vert.co.normalized()
         for c in craters:
             dot   = max(-1.0, min(1.0, vert_dir.dot(c["dir"])))
             angle = math.acos(dot)
             if angle < c["angular_radius"]:
-                t       = angle / c["angular_radius"]
-                profile = _crater_profile(t)
-                vert.co += vert_dir * profile * c["depth"]
-                if profile < 0.0:
-                    # Normalise darkness so max depth (profile≈-1) maps to ~1.0
-                    darkness = abs(profile) * (c["depth"] / 0.25)
-                    vert_darkness[i] = min(1.0, max(vert_darkness[i], darkness))
-
-    # Assign crater material to faces whose vertices are mostly inside a crater
-    bm.faces.ensure_lookup_table()
-    for face in bm.faces:
-        avg = sum(vert_darkness[loop.vert.index] for loop in face.loops) / len(face.loops)
-        face.material_index = 1 if avg > 0.30 else 0
+                t = angle / c["angular_radius"]
+                vert.co += vert_dir * _crater_profile(t) * c["depth"]
 
 
 def _make_rock_material(name: str, rng: random.Random) -> bpy.types.Material:
@@ -82,16 +68,6 @@ def _make_rock_material(name: str, rng: random.Random) -> bpy.types.Material:
         bsdf.inputs["Metallic"].default_value   = rng.uniform(0.0, 0.08)
     return mat
 
-
-def _make_crater_material(name: str) -> bpy.types.Material:
-    """Pure black crater floor."""
-    mat  = bpy.data.materials.new(name)
-    mat.use_nodes = True
-    bsdf = mat.node_tree.nodes.get("Principled BSDF")
-    bsdf.inputs["Base Color"].default_value = (0.0, 0.0, 0.0, 1.0)
-    bsdf.inputs["Roughness"].default_value  = 1.0
-    bsdf.inputs["Metallic"].default_value   = 0.0
-    return mat
 
 
 def _cleanup() -> None:
@@ -159,13 +135,12 @@ def generate(index: int) -> None:
 
     bm = bmesh.new()
     bm.from_mesh(obj.data)
-    _carve_and_mark(bm, craters)
+    _carve(bm, craters)
     bm.to_mesh(obj.data);  bm.free();  obj.data.update()
 
     bpy.ops.object.shade_smooth()
 
     obj.data.materials.append(_make_rock_material(f"AsteroidRock_{index:02d}", rng))
-    obj.data.materials.append(_make_crater_material(f"AsteroidCrater_{index:02d}"))
 
     out_path = os.path.join(OUT_DIR, f"asteroid_{index:02d}.glb")
     _export(out_path)
@@ -221,13 +196,12 @@ def generate_tier(index: int, prefix: str, seed_offset: int,
 
     bm = bmesh.new()
     bm.from_mesh(obj.data)
-    _carve_and_mark(bm, craters)
+    _carve(bm, craters)
     bm.to_mesh(obj.data);  bm.free();  obj.data.update()
 
     bpy.ops.object.shade_smooth()
 
     obj.data.materials.append(_make_rock_material(f"Rock_{prefix}_{index:02d}", rng))
-    obj.data.materials.append(_make_crater_material(f"Crater_{prefix}_{index:02d}"))
 
     out_path = os.path.join(OUT_DIR, f"{prefix}_{index:02d}.glb")
     _export(out_path)
