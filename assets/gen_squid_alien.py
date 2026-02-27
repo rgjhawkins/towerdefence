@@ -3,8 +3,8 @@ Blender 5.x headless script — generates an animated squid alien GLB.
 
 Mesh:
   - Mantle (elongated ICO sphere, tapered at base)
-  - 2 eyes (small spheres on front face)
   - 8 tentacles (4 long, 4 short, alternating), tapered cylinders
+  - Toxic green bioluminescent material, no eyes
 
 Rig:
   - root bone (stub at origin)
@@ -81,16 +81,6 @@ def _make_mantle() -> bpy.types.Object:
     obj.data.update()
     return obj
 
-
-def _make_eye(side: int) -> bpy.types.Object:
-    """Small sphere eye; side = +1 (right) or -1 (left)."""
-    bpy.ops.mesh.primitive_ico_sphere_add(subdivisions=2, radius=0.16,
-                                          location=(side * 0.38, -0.62, 0.35))
-    obj = bpy.context.active_object
-    obj.name = "Eye_R" if side > 0 else "Eye_L"
-    _set_active(obj)
-    bpy.ops.object.transform_apply(location=True, scale=True)
-    return obj
 
 
 def _make_tentacle(index: int) -> bpy.types.Object:
@@ -319,28 +309,20 @@ _cleanup()
 
 # ── Build mesh ────────────────────────────────────────────────────────────────
 mantle    = _make_mantle()
-eye_l     = _make_eye(-1)
-eye_r     = _make_eye( 1)
 tentacles = [_make_tentacle(i) for i in range(NUM_TENTACLES)]
 
-# Assign materials (before join so each part gets its own)
+# Assign material (before join)
 body_mat = _principled("SquidBody",
-                        base=(0.05, 0.08, 0.28, 1.0),
-                        roughness=0.45, metallic=0.15,
-                        emit=(0.08, 0.12, 0.70, 1.0), emit_strength=1.0)
-eye_mat  = _principled("SquidEye",
-                        base=(0.02, 0.02, 0.04, 1.0),
-                        roughness=0.05, metallic=0.8,
-                        emit=(0.70, 0.05, 0.85, 1.0), emit_strength=3.0)
+                        base=(0.04, 0.22, 0.06, 1.0),
+                        roughness=0.45, metallic=0.10,
+                        emit=(0.08, 0.55, 0.10, 1.0), emit_strength=1.2)
 
 mantle.data.materials.append(body_mat)
 for t in tentacles:
     t.data.materials.append(body_mat)
-eye_l.data.materials.append(eye_mat)
-eye_r.data.materials.append(eye_mat)
 
 # Join into one mesh object
-squid = _join([mantle] + tentacles + [eye_l, eye_r])
+squid = _join([mantle] + tentacles)
 squid.name = "SquidAlien"
 
 _set_active(squid)

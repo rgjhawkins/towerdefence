@@ -3,6 +3,9 @@ extends OrganicAlien
 ## Hive-defender bug. Patrols around its home asteroid, attacks collectors that
 ## come too close, and returns home when the threat moves away.
 
+const SQUID_SCENE := preload("res://assets/squid_aliens/squid_alien.glb")
+const MESH_SCALE  := 0.15
+
 enum State { ATTACKING, RETURNING, ATTACHED, BURSTING, ORBITING }
 
 const SPEED := 3.0
@@ -31,15 +34,10 @@ var _orbit_normal: Vector3 = Vector3.UP
 var _return_timer: float = 0.0
 var _age: float = 0.0
 var _wander_dir: Vector3 = Vector3.ZERO
-var _mesh: Node3D = null  # Root container — scaled for idle pulse
+var _mesh: Node3D = null  # Loaded squid GLB — scaled for idle pulse
 var _body_mat: StandardMaterial3D = null
-var _tent_mat: StandardMaterial3D = null
 var _force_immediate_death: bool = false
 var _on_surface: bool = false  # Set by _get_move_dir_to; suppresses erratic wander near asteroids
-var _tent_root_pivots: Array[Node3D] = []
-var _tent_mid_pivots: Array[Node3D] = []
-var _tent_rest_transforms: Array[Transform3D] = []
-var _tent_phases: Array[float] = []
 
 
 func _on_ready() -> void:
@@ -54,7 +52,6 @@ func _on_process(delta: float) -> void:
 		_home_initialized = true
 
 	_age += delta
-	_animate_tentacles()
 
 	# Burst direction needs global_position, so initialise here on first frame
 	if _home_initialized and _burst_dir == Vector3.ZERO:
@@ -318,7 +315,7 @@ func _attach(collector: CollectorShip) -> void:
 func _do_attached_idle() -> void:
 	if _mesh:
 		var pulse := 1.0 + sin(_age * 6.0) * 0.05
-		_mesh.scale = Vector3.ONE * pulse
+		_mesh.scale = Vector3.ONE * MESH_SCALE * pulse
 
 
 func die() -> void:
@@ -334,173 +331,41 @@ func die() -> void:
 
 func _on_corpse_start() -> void:
 	if _body_mat:
-		_body_mat.emission_energy_multiplier = 0.15
-		_body_mat.albedo_color = Color(0.06, 0.02, 0.10)
-	if _tent_mat:
-		_tent_mat.emission_energy_multiplier = 0.08
-		_tent_mat.albedo_color = Color(0.08, 0.03, 0.14)
+		_body_mat.emission_energy_multiplier = 0.08
+		_body_mat.albedo_color = Color(0.02, 0.08, 0.02)  # dark dead green
 
 
 # --- Visual ---
 
 func _build_mesh() -> void:
-	# Root container — whole squid scales together during the idle pulse
-	_mesh = Node3D.new()
+	_mesh = SQUID_SCENE.instantiate() as Node3D
+	# Rotate so mantle faces forward (-Z) and tentacles trail behind
+	_mesh.rotation_degrees = Vector3(-90.0, 0.0, 0.0)
+	_mesh.scale = Vector3.ONE * MESH_SCALE
 	add_child(_mesh)
 
-	# Body: deep violet, purple glow
-	_body_mat = StandardMaterial3D.new()
-	var body_mat := _body_mat
-	body_mat.albedo_color = Color(0.12, 0.04, 0.28)
-	body_mat.emission_enabled = true
-	body_mat.emission = Color(0.45, 0.0, 0.75)
-	body_mat.emission_energy_multiplier = 1.0
-	body_mat.roughness = 0.3
-	body_mat.metallic = 0.3
+	# Start idle animation from the GLB armature
+	var anim := _mesh.find_child("AnimationPlayer", true, false) as AnimationPlayer
+	if anim:
+		if anim.has_animation("idle"):
+			anim.play("idle")
+		elif anim.get_animation_list().size() > 0:
+			anim.play(anim.get_animation_list()[0])
 
-	# Tentacles: slightly lighter purple
-	_tent_mat = StandardMaterial3D.new()
-	var tent_mat := _tent_mat
-	tent_mat.albedo_color = Color(0.20, 0.06, 0.38)
-	tent_mat.emission_enabled = true
-	tent_mat.emission = Color(0.28, 0.0, 0.58)
-	tent_mat.emission_energy_multiplier = 0.7
-
-	# Eyes: glowing cyan
-	var eye_mat := StandardMaterial3D.new()
-	eye_mat.albedo_color = Color(0.0, 0.75, 1.0)
-	eye_mat.emission_enabled = true
-	eye_mat.emission = Color(0.0, 0.85, 1.0)
-	eye_mat.emission_energy_multiplier = 5.0
-
-	# Fins: semi-transparent violet
-	var fin_mat := StandardMaterial3D.new()
-	fin_mat.albedo_color = Color(0.30, 0.05, 0.55, 0.38)
-	fin_mat.emission_enabled = true
-	fin_mat.emission = Color(0.4, 0.0, 0.7)
-	fin_mat.emission_energy_multiplier = 0.5
-	fin_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	fin_mat.cull_mode = BaseMaterial3D.CULL_DISABLED
-
-	# Mantle — elongated teardrop, tapers at the rear (+Z)
-	var mantle_s := SphereMesh.new()
-	mantle_s.radius = 0.12
-	mantle_s.height = 0.30
-	mantle_s.radial_segments = 10
-	mantle_s.rings = 6
-	mantle_s.material = body_mat
-	var mantle := MeshInstance3D.new()
-	mantle.mesh = mantle_s
-	mantle.position = Vector3(0.0, 0.0, 0.08)
-	mantle.scale = Vector3(1.0, 0.85, 1.0)
-	_mesh.add_child(mantle)
-
-	# Head — slightly wider bulge at the front, connects to tentacles
-	var head_s := SphereMesh.new()
-	head_s.radius = 0.10
-	head_s.height = 0.17
-	head_s.radial_segments = 10
-	head_s.rings = 5
-	head_s.material = body_mat
-	var head := MeshInstance3D.new()
-	head.mesh = head_s
-	head.position = Vector3(0.0, 0.0, -0.09)
-	head.scale = Vector3(1.18, 0.9, 1.0)
-	_mesh.add_child(head)
-
-	# Compound eyes — large glowing cyan spheres
-	for side: int in [-1, 1]:
-		var eye_s := SphereMesh.new()
-		eye_s.radius = 0.036
-		eye_s.height = 0.055
-		eye_s.radial_segments = 7
-		eye_s.rings = 4
-		eye_s.material = eye_mat
-		var eye := MeshInstance3D.new()
-		eye.mesh = eye_s
-		eye.position = Vector3(side * 0.082, 0.022, -0.12)
-		_mesh.add_child(eye)
-
-	# Side fins — flat translucent ovals swept back along the mantle
-	for side: int in [-1, 1]:
-		var fin_s := SphereMesh.new()
-		fin_s.radius = 0.09
-		fin_s.height = 0.022
-		fin_s.radial_segments = 8
-		fin_s.rings = 3
-		fin_s.material = fin_mat
-		var fin := MeshInstance3D.new()
-		fin.mesh = fin_s
-		fin.position = Vector3(side * 0.14, 0.0, 0.05)
-		fin.scale = Vector3(1.0, 1.0, 1.9)
-		_mesh.add_child(fin)
-
-	# Tentacles — 8 pivot-based segments so they can be animated each frame
-	const SEG1_LEN := 0.26
-	const SEG2_LEN := 0.22
-	for i: int in 8:
-		var ring_angle := (float(i) / 8.0) * TAU
-		_tent_phases.append(randf() * TAU)
-
-		var out := Vector3(cos(ring_angle), sin(ring_angle), 0.0)
-		var base_pos := Vector3(out.x * 0.058, out.y * 0.058, -0.16)
-
-		# Initial tentacle direction: outward + forward
-		var tent_dir := (out * 0.18 + Vector3(0.0, 0.0, -0.18)).normalized()
-
-		# Orient pivot so its local -Y points along tent_dir
-		var local_y := -tent_dir
-		var ref := Vector3.FORWARD if abs(local_y.dot(Vector3.UP)) > 0.9 else Vector3.UP
-		var local_x := ref.cross(local_y).normalized()
-		var local_z := local_x.cross(local_y).normalized()
-
-		var root_pivot := Node3D.new()
-		root_pivot.transform = Transform3D(Basis(local_x, local_y, local_z), base_pos)
-		_mesh.add_child(root_pivot)
-		_tent_root_pivots.append(root_pivot)
-		_tent_rest_transforms.append(root_pivot.transform)
-
-		# Root segment — hangs along pivot's local -Y
-		var root_cyl := CylinderMesh.new()
-		root_cyl.top_radius = 0.011
-		root_cyl.bottom_radius = 0.020
-		root_cyl.height = SEG1_LEN
-		root_cyl.material = tent_mat
-		var root_inst := MeshInstance3D.new()
-		root_inst.mesh = root_cyl
-		root_inst.position = Vector3(0.0, -SEG1_LEN * 0.5, 0.0)
-		root_pivot.add_child(root_inst)
-
-		# Mid pivot at the tip of the root segment
-		var mid_pivot := Node3D.new()
-		mid_pivot.position = Vector3(0.0, -SEG1_LEN, 0.0)
-		root_pivot.add_child(mid_pivot)
-		_tent_mid_pivots.append(mid_pivot)
-
-		# Tip segment — hangs along mid_pivot's local -Y
-		var tip_cyl := CylinderMesh.new()
-		tip_cyl.top_radius = 0.004
-		tip_cyl.bottom_radius = 0.011
-		tip_cyl.height = SEG2_LEN
-		tip_cyl.material = tent_mat
-		var tip_inst := MeshInstance3D.new()
-		tip_inst.mesh = tip_cyl
-		tip_inst.position = Vector3(0.0, -SEG2_LEN * 0.5, 0.0)
-		mid_pivot.add_child(tip_inst)
+	# Grab a per-instance duplicate of the body material for corpse tinting
+	var mi := _find_mesh_instance(_mesh)
+	if mi and mi.mesh and mi.mesh.get_surface_count() > 0:
+		var mat := mi.get_active_material(0)
+		if mat:
+			_body_mat = mat.duplicate() as StandardMaterial3D
+			mi.set_surface_override_material(0, _body_mat)
 
 
-func _animate_tentacles() -> void:
-	for i in _tent_root_pivots.size():
-		var phase := _tent_phases[i]
-		# Sway the whole tentacle with two independent sine waves
-		var sway_x := sin(_age * 2.1 + phase) * deg_to_rad(22.0)
-		var sway_z := sin(_age * 1.6 + phase + 1.3) * deg_to_rad(16.0)
-		var sway := Basis.from_euler(Vector3(sway_x, 0.0, sway_z))
-		_tent_root_pivots[i].transform = Transform3D(
-			_tent_rest_transforms[i].basis * sway,
-			_tent_rest_transforms[i].origin
-		)
-		# Curl the tip with a slight phase offset for a wave-like feel
-		var curl_x := sin(_age * 2.6 + phase + 0.9) * deg_to_rad(28.0)
-		var curl_z := sin(_age * 1.9 + phase + 2.2) * deg_to_rad(18.0)
-		_tent_mid_pivots[i].transform.basis = Basis.from_euler(Vector3(curl_x, 0.0, curl_z))
+func _find_mesh_instance(node: Node) -> MeshInstance3D:
+	if node is MeshInstance3D:
+		return node as MeshInstance3D
+	for child in node.get_children():
+		var result := _find_mesh_instance(child)
+		if result:
+			return result
+	return null
