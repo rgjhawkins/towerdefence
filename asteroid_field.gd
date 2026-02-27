@@ -1,5 +1,5 @@
 class_name AsteroidField
-extends SpaceAnomaly
+extends "res://space_anomaly.gd"
 
 const NUM_ASTEROIDS  := 5
 const NUM_HOLES      := 3
