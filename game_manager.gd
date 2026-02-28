@@ -51,7 +51,7 @@ func _spawn_collector() -> void:
 
 		# Wire mothership landing pad and cargo bay before _ready() fires
 		if mothership:
-			var landing_pad := mothership.get_node_or_null("LandingPad") as Node3D
+			var landing_pad := mothership.get_node_or_null("DockingRing") as Node3D
 			var cargo_bay   := mothership.get_node_or_null("CargoBay") as Node3D
 			if landing_pad:
 				collector_ship.parking_bay_node = landing_pad
