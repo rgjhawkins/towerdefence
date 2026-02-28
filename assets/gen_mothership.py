@@ -1,52 +1,42 @@
 """
-Blender headless script — generates a mining mothership GLB.
+Blender headless script — generates an industrial mining mothership GLB (v2).
 
-Hull layout (Blender coords: Y = forward/stern, Z = up):
-  • Main hull: elongated box, 8 units long along Y, 3 wide, 1.4 tall
-  • Tapered prow at bow (−Y direction)
-  • Bridge tower near bow on dorsal surface
-  • Dorsal spine ridge running full length
-  • 5 turret mount pads along dorsal spine
-  • Twin engine nacelles at stern (+Y)
-  • Landing deck at stern-top
-  • Cargo bay frame at stern
+Design language: heavy, modular, utilitarian — bolted-together sections.
 
-Named Empty objects (become Node3D children in Godot after GLB import):
-  TurretMount1 … TurretMount5  along dorsal spine (bow→stern)
-  LandingPad                    at stern-top
-  CargoBay                      at stern-centre
+Sections (bow = −Y, stern = +Y, up = +Z):
+  • Mining prow  : heavy reinforced block with cutter bars and drill ribs
+  • Command module: boxy bridge, offset to port for asymmetry, viewport strip
+  • Structural spine (I-beam): top flange + web + bottom flange along dorsal
+  • Side hull plates: thick armour panels hanging off the spine web
+  • Cargo bay skeleton: open frame of cross-beams and corner pillars (mid-ship)
+  • Ore processing tanks: two offset cylinders on upper hull
+  • Engine section: two large rectangular pods with heat-sink fins
+  • Fuel tanks: large cylinders flanking the engine pods
+  • Engine nozzles: 4 square-ish exhaust ports at the very stern
 
-Godot coordinate mapping (GLB import converts Blender→Godot):
-  Blender (x, y, z)  →  Godot (x, z, -y)
+5 turret mount pads along the spine top, matching Godot TurretMount1-5.
 
-So the Blender turret positions (0, -3…+3, 1.05) become Godot (0, 1.05, 3…-3).
+Coordinate mapping (GLB import, Blender → Godot):
+  Blender (x, y, z)  →  Godot (x, z, −y)
 
-Run via:
+Run:
   blender --background --python assets/gen_mothership.py
-
-Output: assets/mothership/mothership.glb
+Output:
+  assets/mothership/mothership.glb
 """
 
 import bpy
-import bmesh
 import math
 import os
-from mathutils import Vector
 
 OUT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "mothership")
 os.makedirs(OUT_DIR, exist_ok=True)
 
-# Hardpoint positions in Blender space (X, Y, Z)
-# Bow = −Y, Stern = +Y, Up = +Z
-TURRET_MOUNT_POSITIONS = [
-    (0.0, -3.0, 1.05),  # TurretMount1 — nearest bow
-    (0.0, -1.5, 1.05),  # TurretMount2
-    (0.0,  0.0, 1.05),  # TurretMount3 — amidships
-    (0.0,  1.5, 1.05),  # TurretMount4
-    (0.0,  3.0, 1.05),  # TurretMount5 — nearest stern
-]
-LANDING_PAD_POS = (0.0,  3.5, 1.25)
-CARGO_BAY_POS   = (0.0,  3.8,  0.4)
+HALF_PI = math.pi / 2.0
+
+# Turret pads: Blender Y positions → Godot Z = 3, 1.5, 0, −1.5, −3
+TURRET_Y  = [-3.0, -1.5,  0.0,  1.5,  3.0]
+TURRET_Z  = 1.38   # top of spine in Blender Z
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
@@ -77,32 +67,9 @@ def _join(objects: list) -> bpy.types.Object:
     return bpy.context.active_object
 
 
-# ── Materials ─────────────────────────────────────────────────────────────────
-
-def _principled(name: str, base, roughness: float, metallic: float,
-                emit=None, emit_strength: float = 0.0) -> bpy.types.Material:
-    mat = bpy.data.materials.new(name)
-    mat.use_nodes = True
-    nodes = mat.node_tree.nodes
-    links = mat.node_tree.links
-    nodes.clear()
-    out  = nodes.new("ShaderNodeOutputMaterial")
-    bsdf = nodes.new("ShaderNodeBsdfPrincipled")
-    bsdf.inputs["Base Color"].default_value = base
-    bsdf.inputs["Roughness"].default_value  = roughness
-    bsdf.inputs["Metallic"].default_value   = metallic
-    if emit is not None:
-        bsdf.inputs["Emission Color"].default_value    = emit
-        bsdf.inputs["Emission Strength"].default_value = emit_strength
-    links.new(bsdf.outputs["BSDF"], out.inputs["Surface"])
-    return mat
-
-
-# ── Mesh part builders ────────────────────────────────────────────────────────
-
 def _box(name: str, loc: tuple, w: float, l: float, h: float,
          mat: bpy.types.Material = None) -> bpy.types.Object:
-    """Axis-aligned box centred at loc with dimensions w(X) × l(Y) × h(Z)."""
+    """Box centred at loc, dimensions w(X) × l(Y) × h(Z)."""
     bpy.ops.mesh.primitive_cube_add(size=1.0, location=loc)
     obj = bpy.context.active_object
     obj.name = name
@@ -114,12 +81,13 @@ def _box(name: str, loc: tuple, w: float, l: float, h: float,
     return obj
 
 
-def _cylinder(name: str, loc: tuple, radius: float, depth: float,
-              rot: tuple = (0.0, 0.0, 0.0),
-              mat: bpy.types.Material = None) -> bpy.types.Object:
-    """Cylinder with given rotation (Euler XYZ radians)."""
+def _cyl(name: str, loc: tuple, r: float, d: float,
+         rot: tuple = (0.0, 0.0, 0.0),
+         mat: bpy.types.Material = None,
+         verts: int = 10) -> bpy.types.Object:
+    """Cylinder. Default axis = Y after 90 ° X-rotation applied here."""
     bpy.ops.mesh.primitive_cylinder_add(
-        radius=radius, depth=depth, location=loc, rotation=rot, vertices=16)
+        radius=r, depth=d, location=loc, rotation=rot, vertices=verts)
     obj = bpy.context.active_object
     obj.name = name
     bpy.ops.object.transform_apply(rotation=True, scale=True)
@@ -129,38 +97,33 @@ def _cylinder(name: str, loc: tuple, radius: float, depth: float,
     return obj
 
 
-def _make_prow(mat: bpy.types.Material) -> bpy.types.Object:
-    """Tapered frustum from hull nose (y=−4.0) to sharp bow tip (y=−5.0)."""
-    bm = bmesh.new()
-    # Back face — same cross-section as hull end
-    bw, bh = 3.0, 1.4
-    tw, th = 0.3, 0.3      # tip dimensions
-    y_back, y_tip = -4.0, -5.0
+def _add_empty(name: str, loc: tuple) -> bpy.types.Object:
+    bpy.ops.object.empty_add(type="PLAIN_AXES", location=loc)
+    e = bpy.context.active_object
+    e.name = name
+    e.empty_display_size = 0.3
+    return e
 
-    vb = [bm.verts.new(Vector(( bw / 2,  y_back, -bh / 2))),
-          bm.verts.new(Vector((-bw / 2,  y_back, -bh / 2))),
-          bm.verts.new(Vector((-bw / 2,  y_back,  bh / 2))),
-          bm.verts.new(Vector(( bw / 2,  y_back,  bh / 2)))]
-    vt = [bm.verts.new(Vector(( tw / 2,  y_tip, -th / 2))),
-          bm.verts.new(Vector((-tw / 2,  y_tip, -th / 2))),
-          bm.verts.new(Vector((-tw / 2,  y_tip,  th / 2))),
-          bm.verts.new(Vector(( tw / 2,  y_tip,  th / 2)))]
 
-    bm.faces.new([vb[3], vb[2], vb[1], vb[0]])          # back
-    bm.faces.new([vt[0], vt[1], vt[2], vt[3]])          # front tip
-    bm.faces.new([vb[0], vb[1], vt[1], vt[0]])          # bottom
-    bm.faces.new([vb[2], vb[3], vt[3], vt[2]])          # top
-    bm.faces.new([vb[1], vb[2], vt[2], vt[1]])          # port
-    bm.faces.new([vb[3], vb[0], vt[0], vt[3]])          # starboard
+# ── Materials ─────────────────────────────────────────────────────────────────
 
-    mesh = bpy.data.meshes.new("Prow")
-    bm.to_mesh(mesh)
-    bm.free()
-    obj = bpy.data.objects.new("Prow", mesh)
-    bpy.context.collection.objects.link(obj)
-    if mat:
-        obj.data.materials.append(mat)
-    return obj
+def _mat(name: str, base, rough: float, metal: float,
+         emit=None, emit_str: float = 0.0) -> bpy.types.Material:
+    m = bpy.data.materials.new(name)
+    m.use_nodes = True
+    nodes = m.node_tree.nodes
+    links = m.node_tree.links
+    nodes.clear()
+    out  = nodes.new("ShaderNodeOutputMaterial")
+    bsdf = nodes.new("ShaderNodeBsdfPrincipled")
+    bsdf.inputs["Base Color"].default_value = base
+    bsdf.inputs["Roughness"].default_value  = rough
+    bsdf.inputs["Metallic"].default_value   = metal
+    if emit:
+        bsdf.inputs["Emission Color"].default_value    = emit
+        bsdf.inputs["Emission Strength"].default_value = emit_str
+    links.new(bsdf.outputs["BSDF"], out.inputs["Surface"])
+    return m
 
 
 # ── Entry point ───────────────────────────────────────────────────────────────
@@ -168,101 +131,180 @@ def _make_prow(mat: bpy.types.Material) -> bpy.types.Object:
 bpy.ops.wm.read_factory_settings(use_empty=True)
 _cleanup()
 
-# Materials
-hull_mat   = _principled("Hull",
-                          base=(0.12, 0.13, 0.15, 1.0), roughness=0.50, metallic=0.80)
-accent_mat = _principled("Accent",
-                          base=(0.75, 0.50, 0.02, 1.0), roughness=0.40, metallic=0.70)
-engine_mat = _principled("Engine",
-                          base=(0.20, 0.10, 0.05, 1.0), roughness=0.60, metallic=0.30,
-                          emit=(1.0, 0.40, 0.10, 1.0), emit_strength=8.0)
-pad_mat    = _principled("LandPad",
-                          base=(0.50, 0.55, 0.18, 1.0), roughness=0.50, metallic=0.50,
-                          emit=(0.50, 0.60, 0.10, 1.0), emit_strength=0.8)
-window_mat = _principled("BridgeWindow",
-                          base=(0.10, 0.30, 0.60, 1.0), roughness=0.10, metallic=0.00,
-                          emit=(0.20, 0.50, 1.00, 1.0), emit_strength=2.0)
+hull    = _mat("Hull",   (0.13, 0.13, 0.14, 1), rough=0.58, metal=0.72)
+struct  = _mat("Struct", (0.22, 0.20, 0.18, 1), rough=0.62, metal=0.60)
+accent  = _mat("Accent", (0.72, 0.48, 0.02, 1), rough=0.38, metal=0.72)
+engine  = _mat("Engine", (0.16, 0.07, 0.03, 1), rough=0.55, metal=0.30,
+               emit=(1.0, 0.38, 0.08, 1), emit_str=9.0)
+window  = _mat("Window", (0.06, 0.22, 0.55, 1), rough=0.08, metal=0.00,
+               emit=(0.12, 0.40, 1.00, 1), emit_str=2.5)
+tank    = _mat("Tank",   (0.20, 0.19, 0.17, 1), rough=0.52, metal=0.58)
 
-# ── Build ship parts ──────────────────────────────────────────────────────────
 parts = []
 
-# 1. Main hull body
-parts.append(_box("Hull_main",   (0, 0, 0),           3.0,  8.0,  1.40, hull_mat))
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# 1. STRUCTURAL SPINE — I-beam running the full dorsal length
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+parts += [
+    _box("Spine_top_flange", (0,  0.0, 1.28), 0.82, 10.0, 0.24, struct),
+    _box("Spine_web",        (0,  0.0, 0.48), 0.26, 10.0, 1.56, struct),
+    _box("Spine_bot_flange", (0,  0.0,-0.18), 0.72, 10.0, 0.22, struct),
+]
 
-# 2. Tapered prow
-parts.append(_make_prow(hull_mat))
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# 2. MINING PROW — heavy reinforced block at the bow
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+parts += [
+    _box("Prow_block",    (0, -5.2, 0.10), 3.50, 2.80, 2.10, hull),
+    _box("Prow_upper",    (0, -4.0, 1.15), 2.60, 1.20, 0.80, hull),  # stepped transition
+    # Horizontal reinforcement bars on the front face
+    _box("Prow_bar_mid",  (0, -6.55, 0.50), 3.70, 0.32, 0.32, accent),
+    _box("Prow_bar_top",  (0, -6.55, 1.10), 3.70, 0.32, 0.22, accent),
+    # Vertical structural ribs on prow face
+    _box("Prow_rib_c",   ( 0.0, -6.55, 0.35), 0.24, 0.32, 1.10, struct),
+    _box("Prow_rib_l",   (-1.35, -6.55, 0.35), 0.24, 0.32, 1.10, struct),
+    _box("Prow_rib_r",   ( 1.35, -6.55, 0.35), 0.24, 0.32, 1.10, struct),
+    # Mining cutters — thick accent blocks at bow corners
+    _box("Cutter_l",    (-1.15, -6.80, 0.60), 0.55, 0.26, 0.50, accent),
+    _box("Cutter_r",    ( 1.15, -6.80, 0.60), 0.55, 0.26, 0.50, accent),
+]
 
-# 3. Bridge tower (near bow, elevated on dorsal surface)
-parts.append(_box("Bridge",      (0, -1.5, 1.10),     1.20, 1.80, 0.80, hull_mat))
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# 3. COMMAND MODULE — offset to port (asymmetric, industrial feel)
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+parts += [
+    _box("Bridge_body",   (-0.45, -3.0, 1.60), 1.90, 3.00, 1.40, hull),
+    _box("Bridge_roof",   (-0.45, -3.0, 2.33), 1.70, 2.70, 0.32, hull),
+    # Viewport strip across front
+    _box("Bridge_window", (-0.45, -4.48, 1.92), 1.50, 0.10, 0.58, window),
+    # Side window (port)
+    _box("Bridge_win_p",  (-1.36, -3.0,  1.92), 0.10, 1.80, 0.44, window),
+    # Antenna mast + dish
+    _box("Mast",          (-0.45, -3.60, 2.55), 0.06, 0.06, 0.58, struct),
+    _box("AntDish",       (-0.45, -3.60, 2.88), 0.44, 0.44, 0.08, struct),
+    # Roof detail box (sensor cluster)
+    _box("SensorBox",     ( 0.55, -2.80, 2.42), 0.42, 0.60, 0.22, struct),
+]
 
-# 4. Bridge window strip (front face of bridge tower)
-parts.append(_box("BridgeWin",   (0, -2.40, 1.32),    1.00, 0.08, 0.32, window_mat))
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# 4. SIDE HULL ARMOUR PLATES
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+for sx in (-1.0, 1.0):
+    s = -1 if sx < 0 else 1
+    parts += [
+        _box("Side_plate",  (sx * 1.68, -1.0, 0.08), 0.32, 7.80, 2.00, hull),
+        _box("Side_skirt",  (sx * 1.58, -1.0,-0.82), 0.40, 7.20, 0.58, hull),
+        # Yellow safety stripe along lower edge of plate
+        _box("AccentLine",  (sx * 1.86, -1.5, 0.22), 0.05, 5.20, 0.14, accent),
+        # Bolted panel dividers (short vertical bars)
+        _box("PanelDiv",    (sx * 1.86, -3.0, 0.22), 0.05, 0.18, 0.80, struct),
+        _box("PanelDiv2",   (sx * 1.86,  0.5, 0.22), 0.05, 0.18, 0.80, struct),
+        _box("PanelDiv3",   (sx * 1.86,  2.5, 0.22), 0.05, 0.18, 0.80, struct),
+    ]
 
-# 5. Dorsal spine ridge (runs full hull length, slightly narrower)
-parts.append(_box("DorsalRidge", (0, 0, 0.84),        0.45, 8.00, 0.30, hull_mat))
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# 5. LOWER KEEL
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+parts.append(_box("Keel", (0, -0.5, -1.02), 2.90, 9.00, 0.52, hull))
 
-# 6. Turret mount pads — 5 accent cylinders on dorsal ridge
-for i, pos in enumerate(TURRET_MOUNT_POSITIONS):
-    parts.append(_cylinder(f"TurretPad_{i+1}", pos,
-                            radius=0.28, depth=0.16, rot=(0.0, 0.0, 0.0),
-                            mat=accent_mat))
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# 6. CARGO BAY SKELETON — open structural frame (mid-ship)
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+for y in (-0.3, 1.1, 2.5):
+    parts += [
+        _box("CargoFrame_top", (0, y, 0.72), 3.50, 0.24, 0.20, struct),
+        _box("CargoFrame_bot", (0, y,-0.58), 3.50, 0.24, 0.18, struct),
+    ]
+# Vertical corner pillars
+for sx in (-1.52, 1.52):
+    for y in (-0.3, 1.1, 2.5):
+        parts.append(_box("CargoPillar", (sx, y, 0.06), 0.24, 0.24, 2.30, struct))
+# Cargo bay floor plate
+parts.append(_box("CargoFloor", (0, 1.1, -0.90), 3.10, 3.80, 0.20, hull))
+# Diagonal bracing (X-brace look)
+for sx in (-1.0, 1.0):
+    parts.append(_box("XBrace", (sx * 0.75, 0.9, 0.10), 0.10, 0.18, 2.20, struct))
 
-# 7. Engine nacelles — twin rectangular blocks at stern
-for label, sx in (("L", -1.10), ("R", 1.10)):
-    parts.append(_box(f"Nacelle_{label}", (sx, 4.25, 0.0),  0.75, 1.50, 0.85, hull_mat))
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# 7. ORE PROCESSING TANKS — pair of offset cylinders on upper hull
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+for sx, cy in ((-0.85, -0.2), (0.85, 0.8)):
+    parts.append(_cyl("OreTank", (sx, cy, 1.55), r=0.34, d=2.80,
+                       rot=(HALF_PI, 0, 0), mat=tank, verts=12))
+    for dy in (-1.40, 1.40):
+        parts.append(_cyl("TankCap", (sx, cy + dy, 1.55), r=0.38, d=0.10,
+                           rot=(HALF_PI, 0, 0), mat=accent, verts=12))
+    # Mounting bracket
+    parts.append(_box("TankMount", (sx, cy, 1.22), 0.38, 2.60, 0.12, struct))
 
-# 8. Engine nozzles — 4 cylinders (2 per nacelle), pointing aft along Y
-HALF_PI = math.pi / 2
-for sx in (-1.10, 1.10):
-    for sz in (-0.17, 0.17):
-        parts.append(_cylinder("Nozzle",
-                                (sx, 5.00, sz),
-                                radius=0.18, depth=0.40,
-                                rot=(HALF_PI, 0.0, 0.0),
-                                mat=engine_mat))
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# 8. ENGINE PODS — two large rectangular blocks at stern
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+for sx in (-1.18, 1.18):
+    s = -1 if sx < 0 else 1
+    parts += [
+        _box("EngPod",    (sx, 4.00, 0.08), 0.95, 3.20, 1.45, hull),
+        # Heat-sink fins on outer face
+        _box("HeatFin_1", (sx + s * 0.56, 3.20, 0.55), 0.06, 0.60, 0.72, struct),
+        _box("HeatFin_2", (sx + s * 0.56, 4.00, 0.55), 0.06, 0.60, 0.72, struct),
+        _box("HeatFin_3", (sx + s * 0.56, 4.80, 0.55), 0.06, 0.60, 0.72, struct),
+        # Accent stripe on engine face
+        _box("EngAccent", (sx, 5.55, 0.08), 0.85, 0.10, 1.30, accent),
+    ]
+# Cross-brace connecting the two pods
+parts += [
+    _box("EngBrace_top", (0, 3.80, 0.84), 2.46, 0.36, 0.22, struct),
+    _box("EngBrace_bot", (0, 3.80,-0.55), 2.46, 0.36, 0.22, struct),
+]
 
-# 9. Landing deck — flat platform at stern-top
-parts.append(_box("LandingDeck", (0, 3.50, 1.14),    2.20, 1.60, 0.12, accent_mat))
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# 9. FUEL TANKS — large cylinders flanking engine pods
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+for sx in (-1.95, 1.95):
+    parts.append(_cyl("FuelTank", (sx, 3.80, 0.08), r=0.44, d=2.60,
+                       rot=(HALF_PI, 0, 0), mat=tank, verts=12))
+    for dy in (-1.30, 1.30):
+        parts.append(_cyl("FuelCap", (sx, 3.80 + dy, 0.08), r=0.48, d=0.10,
+                           rot=(HALF_PI, 0, 0), mat=accent, verts=12))
 
-# 10. Landing pad glow rails (port and starboard)
-for sx in (-0.90, 0.90):
-    parts.append(_box("LandRail", (sx, 3.50, 1.24),  0.07, 1.60, 0.04, pad_mat))
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# 10. ENGINE NOZZLES — 4 boxy exhaust ports (square-ish, industrial)
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+for sx in (-1.18, 1.18):
+    for sz in (-0.28, 0.28):
+        # Outer shroud
+        parts.append(_cyl("NozzleShroud", (sx, 5.85, sz + 0.08), r=0.22, d=0.45,
+                           rot=(HALF_PI, 0, 0), mat=hull, verts=8))
+        # Glowing inner
+        parts.append(_cyl("NozzleGlow",   (sx, 5.95, sz + 0.08), r=0.14, d=0.12,
+                           rot=(HALF_PI, 0, 0), mat=engine, verts=8))
 
-# 11. Cargo bay frame — open recess at stern underside
-parts.append(_box("CargoBayFloor", (0, 3.60, -0.56), 2.00, 1.40, 0.12, hull_mat))
-for sx in (-0.90, 0.90):
-    parts.append(_box("CargoBaySide", (sx, 3.60, -0.22), 0.12, 1.40, 0.70, hull_mat))
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# 11. TURRET MOUNT PADS along the spine top
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+for i, ty in enumerate(TURRET_Y):
+    parts.append(_cyl(f"TurretPad_{i+1}", (0, ty, TURRET_Z),
+                       r=0.30, d=0.18, rot=(0, 0, 0), mat=accent, verts=8))
 
-# 12. Side accent stripes along hull length
-for sx in (-1.45, 1.45):
-    parts.append(_box("SideStripe", (sx, 0, 0.20),   0.06, 6.00, 0.14, accent_mat))
-
-# ── Join all parts into one mesh ──────────────────────────────────────────────
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# JOIN + SHADE
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 mothership = _join(parts)
 mothership.name = "MiningMothership"
 _set_active(mothership)
 bpy.ops.object.shade_smooth()
 
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# NAMED EMPTIES (hardpoint anchors → Node3D in Godot)
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+for i, ty in enumerate(TURRET_Y):
+    _add_empty(f"TurretMount{i+1}", (0, ty, TURRET_Z + 0.12))
 
-# ── Named Empty objects (hardpoints & special nodes) ─────────────────────────
+_add_empty("CargoBay", (0, 5.5, 0.30))
 
-def _add_empty(name: str, loc: tuple) -> bpy.types.Object:
-    bpy.ops.object.empty_add(type="PLAIN_AXES", location=loc)
-    emp = bpy.context.active_object
-    emp.name = name
-    emp.empty_display_size = 0.30
-    return emp
-
-
-for i, pos in enumerate(TURRET_MOUNT_POSITIONS):
-    _add_empty(f"TurretMount{i + 1}", pos)
-
-_add_empty("LandingPad", LANDING_PAD_POS)
-_add_empty("CargoBay",   CARGO_BAY_POS)
-
-
-# ── Export ────────────────────────────────────────────────────────────────────
-
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# EXPORT
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 out_path = os.path.join(OUT_DIR, "mothership.glb")
 bpy.ops.object.select_all(action="SELECT")
 bpy.ops.export_scene.gltf(

@@ -210,6 +210,12 @@ func _setup_hardpoints() -> void:
 	get_node("Ship").add_child(_hardpoint_b)
 	_hardpoint_b.add_child(MachinegunTurret.new())
 
+	# Hardpoint C — spotlight on the front underside
+	var hardpoint_c := Node3D.new()
+	hardpoint_c.position = Vector3(0.0, -0.15, -0.45)
+	get_node("Ship").add_child(hardpoint_c)
+	hardpoint_c.add_child(SpotlightTurret.new())
+
 
 func _process_tractor_beam(delta: float) -> void:
 	var scrap_pieces := get_tree().get_nodes_in_group("scrap")

@@ -10,35 +10,35 @@ radius = 4.0
 script = ExtResource("1_script")
 
 [node name="TurretMount1" type="Node3D" parent="."]
-position = Vector3(0, 1.05, 3)
+position = Vector3(0, 1.5, 3)
 
 [node name="MachinegunTurret" type="Node3D" parent="TurretMount1"]
 script = ExtResource("2_mg")
 target_range = 15.0
 
 [node name="TurretMount2" type="Node3D" parent="."]
-position = Vector3(0, 1.05, 1.5)
+position = Vector3(0, 1.5, 1.5)
 
 [node name="MachinegunTurret" type="Node3D" parent="TurretMount2"]
 script = ExtResource("2_mg")
 target_range = 15.0
 
 [node name="TurretMount3" type="Node3D" parent="."]
-position = Vector3(0, 1.05, 0)
+position = Vector3(0, 1.5, 0)
 
 [node name="MachinegunTurret" type="Node3D" parent="TurretMount3"]
 script = ExtResource("2_mg")
 target_range = 15.0
 
 [node name="TurretMount4" type="Node3D" parent="."]
-position = Vector3(0, 1.05, -1.5)
+position = Vector3(0, 1.5, -1.5)
 
 [node name="MachinegunTurret" type="Node3D" parent="TurretMount4"]
 script = ExtResource("2_mg")
 target_range = 15.0
 
 [node name="TurretMount5" type="Node3D" parent="."]
-position = Vector3(0, 1.05, -3)
+position = Vector3(0, 1.5, -3)
 
 [node name="MachinegunTurret" type="Node3D" parent="TurretMount5"]
 script = ExtResource("2_mg")

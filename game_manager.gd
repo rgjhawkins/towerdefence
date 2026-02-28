@@ -55,6 +55,8 @@ func _spawn_collector() -> void:
 			var cargo_bay   := mothership.get_node_or_null("CargoBay") as Node3D
 			if landing_pad:
 				collector_ship.parking_bay_node = landing_pad
+				collector_ship.position = landing_pad.global_position
+				collector_ship.rotation.y = mothership.rotation.y
 			if cargo_bay:
 				collector_ship.intake_node = cargo_bay
 
