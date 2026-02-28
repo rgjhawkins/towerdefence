@@ -1,6 +1,7 @@
 [gd_scene format=3]
 
 [ext_resource type="Script" path="res://mining_mothership.gd" id="1_script"]
+[ext_resource type="Script" path="res://machinegun_turret.gd" id="2_mg"]
 
 [sub_resource type="SphereShape3D" id="SphereShape3D_intake"]
 radius = 4.0
@@ -11,17 +12,37 @@ script = ExtResource("1_script")
 [node name="TurretMount1" type="Node3D" parent="."]
 position = Vector3(0, 1.05, 3)
 
+[node name="MachinegunTurret" type="Node3D" parent="TurretMount1"]
+script = ExtResource("2_mg")
+target_range = 15.0
+
 [node name="TurretMount2" type="Node3D" parent="."]
 position = Vector3(0, 1.05, 1.5)
+
+[node name="MachinegunTurret" type="Node3D" parent="TurretMount2"]
+script = ExtResource("2_mg")
+target_range = 15.0
 
 [node name="TurretMount3" type="Node3D" parent="."]
 position = Vector3(0, 1.05, 0)
 
+[node name="MachinegunTurret" type="Node3D" parent="TurretMount3"]
+script = ExtResource("2_mg")
+target_range = 15.0
+
 [node name="TurretMount4" type="Node3D" parent="."]
 position = Vector3(0, 1.05, -1.5)
 
+[node name="MachinegunTurret" type="Node3D" parent="TurretMount4"]
+script = ExtResource("2_mg")
+target_range = 15.0
+
 [node name="TurretMount5" type="Node3D" parent="."]
 position = Vector3(0, 1.05, -3)
+
+[node name="MachinegunTurret" type="Node3D" parent="TurretMount5"]
+script = ExtResource("2_mg")
+target_range = 15.0
 
 [node name="LandingPad" type="Node3D" parent="."]
 position = Vector3(0, 1.25, -3.5)
