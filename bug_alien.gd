@@ -130,6 +130,8 @@ func _check_retreat() -> void:
 # --- Orbit ---
 
 func _start_orbit() -> void:
+	# Orbit the nearest asteroid, not necessarily the original home
+	_home_pos = _find_home_asteroid()
 	_state = State.ORBITING
 	_orbit_timer = randf_range(5.0, 10.0)
 	# Random orbit plane — ensure it's not parallel to the outward normal
