@@ -45,7 +45,7 @@ script = ExtResource("2_mg")
 target_range = 15.0
 
 [node name="DockingRing" type="Node3D" parent="."]
-position = Vector3(0, 1.5, -5.5)
+position = Vector3(0, 1.5, -7.5)
 
 [node name="CargoBay" type="Node3D" parent="."]
 position = Vector3(0, 0.3, -4.5)
