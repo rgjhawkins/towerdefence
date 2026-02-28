@@ -9,7 +9,7 @@ const BULLET_MAX_DIST := 20.0
 
 @export var target_range: float = 8.0
 const DAMAGE := 1.0
-const BARREL_LENGTH := 0.25
+const BARREL_LENGTH := 0.50
 const AIM_THRESHOLD := 5.0      # Degrees — must be this close to fire
 
 @export var rpm: float = 200.0          # Rounds per minute
@@ -160,37 +160,99 @@ func _spawn_muzzle_flash() -> void:
 
 
 func _build_mesh() -> void:
-	# Squat base ring
-	var base_mat := StandardMaterial3D.new()
-	base_mat.albedo_color = Color(0.22, 0.22, 0.28)
-	var base_mesh := CylinderMesh.new()
-	base_mesh.top_radius = 0.10
-	base_mesh.bottom_radius = 0.13
-	base_mesh.height = 0.07
-	base_mesh.material = base_mat
-	var base_inst := MeshInstance3D.new()
-	base_inst.mesh = base_mesh
-	add_child(base_inst)
-
-	# Barrel pivot (rotates to aim)
-	_barrel = Node3D.new()
-	add_child(_barrel)
+	var hull_mat := StandardMaterial3D.new()
+	hull_mat.albedo_color = Color(0.18, 0.18, 0.22)
+	hull_mat.metallic = 0.75
+	hull_mat.roughness = 0.40
 
 	var barrel_mat := StandardMaterial3D.new()
-	barrel_mat.albedo_color = Color(0.18, 0.18, 0.22)
-	var barrel_mesh := CylinderMesh.new()
-	barrel_mesh.top_radius = 0.03
-	barrel_mesh.bottom_radius = 0.03
-	barrel_mesh.height = BARREL_LENGTH
-	barrel_mesh.material = barrel_mat
-	var barrel_inst := MeshInstance3D.new()
-	barrel_inst.mesh = barrel_mesh
-	# Rotate so the cylinder points along -Z (forward)
-	barrel_inst.rotation.x = PI / 2.0
-	barrel_inst.position.z = -BARREL_LENGTH / 2.0
-	_barrel.add_child(barrel_inst)
+	barrel_mat.albedo_color = Color(0.32, 0.32, 0.38)
+	barrel_mat.metallic = 0.90
+	barrel_mat.roughness = 0.20
 
-	# Muzzle marker at the barrel tip
+	var accent_mat := StandardMaterial3D.new()
+	accent_mat.albedo_color = Color(0.9, 0.5, 0.1, 1.0)
+	accent_mat.emission_enabled = true
+	accent_mat.emission = Color(1.0, 0.6, 0.1, 1.0)
+	accent_mat.emission_energy_multiplier = 2.5
+
+	# ── Static base ───────────────────────────────────────────────────────────
+
+	# Base plate — wide cone frustum
+	var base_m := CylinderMesh.new()
+	base_m.top_radius    = 0.22
+	base_m.bottom_radius = 0.26
+	base_m.height        = 0.08
+	base_m.material      = hull_mat
+	var base_i := MeshInstance3D.new()
+	base_i.mesh = base_m
+	add_child(base_i)
+
+	# Glowing accent ring on top edge of base
+	var ring_m := CylinderMesh.new()
+	ring_m.top_radius    = 0.19
+	ring_m.bottom_radius = 0.21
+	ring_m.height        = 0.03
+	ring_m.material      = accent_mat
+	var ring_i := MeshInstance3D.new()
+	ring_i.mesh       = ring_m
+	ring_i.position.y = 0.055
+	add_child(ring_i)
+
+	# ── Rotating barrel assembly ───────────────────────────────────────────────
+
+	_barrel = Node3D.new()
+	_barrel.position.y = 0.07
+	add_child(_barrel)
+
+	# Octagonal gun housing (rotates with barrel so aiming is clearly visible)
+	var housing_m := CylinderMesh.new()
+	housing_m.top_radius      = 0.14
+	housing_m.bottom_radius   = 0.16
+	housing_m.height          = 0.11
+	housing_m.radial_segments = 8
+	housing_m.material        = hull_mat
+	var housing_i := MeshInstance3D.new()
+	housing_i.mesh = housing_m
+	_barrel.add_child(housing_i)
+
+	# Barrel jacket — thick outer sleeve at the breech end
+	var jacket_m := CylinderMesh.new()
+	jacket_m.top_radius    = 0.07
+	jacket_m.bottom_radius = 0.08
+	jacket_m.height        = 0.24
+	jacket_m.material      = hull_mat
+	var jacket_i := MeshInstance3D.new()
+	jacket_i.mesh       = jacket_m
+	jacket_i.rotation.x = PI / 2.0
+	jacket_i.position.z = -0.12       # extends from z=0 to z=-0.24
+	_barrel.add_child(jacket_i)
+
+	# Main barrel — thinner, runs full length
+	var barrel_m := CylinderMesh.new()
+	barrel_m.top_radius    = 0.044
+	barrel_m.bottom_radius = 0.044
+	barrel_m.height        = BARREL_LENGTH
+	barrel_m.material      = barrel_mat
+	var barrel_i := MeshInstance3D.new()
+	barrel_i.mesh       = barrel_m
+	barrel_i.rotation.x = PI / 2.0
+	barrel_i.position.z = -BARREL_LENGTH / 2.0
+	_barrel.add_child(barrel_i)
+
+	# Muzzle brake — wider ring at the barrel tip
+	var brake_m := CylinderMesh.new()
+	brake_m.top_radius    = 0.065
+	brake_m.bottom_radius = 0.065
+	brake_m.height        = 0.05
+	brake_m.material      = barrel_mat
+	var brake_i := MeshInstance3D.new()
+	brake_i.mesh       = brake_m
+	brake_i.rotation.x = PI / 2.0
+	brake_i.position.z = -BARREL_LENGTH - 0.025
+	_barrel.add_child(brake_i)
+
+	# Muzzle marker at the very tip (bullets spawn here)
 	_muzzle = Node3D.new()
-	_muzzle.position = Vector3(0.0, 0.0, -BARREL_LENGTH)
+	_muzzle.position = Vector3(0.0, 0.0, -BARREL_LENGTH - 0.05)
 	_barrel.add_child(_muzzle)
