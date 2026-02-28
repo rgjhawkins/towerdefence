@@ -2,7 +2,7 @@ class_name Turret
 extends Node3D
 ## Base class for all turret types.
 ## Collector hardpoint turrets extend this directly.
-## Scene-based station turrets extend StationTurret which extends this.
+## Mothership turrets will also extend this when implemented.
 
 ## Override to return the display name shown in the upgrade/swap UI.
 func get_turret_name() -> String:

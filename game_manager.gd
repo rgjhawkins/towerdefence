@@ -1,53 +1,32 @@
 class_name GameManager
 extends Node3D
 
-const COLLECTOR_SPAWN_POS := Vector3(-4.76, 1.5, 1.55)
+const COLLECTOR_SPAWN_POS      := Vector3(-4.76, 1.5, 1.55)
 const COLLECTOR_SPAWN_ROTATION := PI / 2
 
 @export var collector_scene: PackedScene
 
-var turrets: Array[StationTurret] = []
 var _f11_held: bool = false
 var camera: Camera3D = null
 var hud: HUD = null
 var collector_ship: CollectorShip = null
-var space_station: SpaceStation = null
+var mothership: MiningMothership = null
 
 
 func _ready() -> void:
 	await get_tree().process_frame
-
-	_find_turrets(get_tree().root)
-	print("Found turrets: ", turrets.size())
 
 	camera = get_viewport().get_camera_3d()
 
 	hud = get_tree().get_first_node_in_group("hud") as HUD
 	if not hud:
 		hud = get_parent().get_node_or_null("HUD") as HUD
-	if hud:
-		hud.turrets = turrets
 
-	space_station = get_tree().get_first_node_in_group("space_station") as SpaceStation
-	if not space_station:
-		space_station = get_parent().get_node_or_null("SpaceStation") as SpaceStation
-	if space_station and space_station.has_signal("scrap_collected"):
-		space_station.scrap_collected.connect(_on_station_scrap_collected)
+	mothership = get_tree().get_first_node_in_group("mothership") as MiningMothership
+	if not mothership:
+		mothership = get_parent().get_node_or_null("MiningMothership") as MiningMothership
 
 	_spawn_collector()
-
-
-func _find_turrets(node: Node) -> void:
-	if node is StationTurret:
-		turrets.append(node)
-		node.clicked.connect(_on_turret_clicked)
-	for child in node.get_children():
-		_find_turrets(child)
-
-
-func _on_turret_clicked(turret: StationTurret) -> void:
-	if hud:
-		hud.select_turret(turret)
 
 
 func _process(_delta: float) -> void:
@@ -84,13 +63,7 @@ func _on_cargo_changed(current: int, capacity: int) -> void:
 
 
 func _on_cargo_unloaded(amount: int) -> void:
-	if hud:
-		hud.add_station_scrap(amount)
-
-
-func _on_station_scrap_collected(amount: int) -> void:
-	if hud:
-		hud.add_station_scrap(amount)
+	pass  # Scrap economy will be wired up with mothership upgrade system
 
 
 func _on_collector_health_changed(current: float, _maximum: float) -> void:

@@ -1,0 +1,35 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://mining_mothership.gd" id="1_script"]
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_intake"]
+radius = 4.0
+
+[node name="MiningMothership" type="Node3D"]
+script = ExtResource("1_script")
+
+[node name="TurretMount1" type="Node3D" parent="."]
+position = Vector3(0, 1.05, 3)
+
+[node name="TurretMount2" type="Node3D" parent="."]
+position = Vector3(0, 1.05, 1.5)
+
+[node name="TurretMount3" type="Node3D" parent="."]
+position = Vector3(0, 1.05, 0)
+
+[node name="TurretMount4" type="Node3D" parent="."]
+position = Vector3(0, 1.05, -1.5)
+
+[node name="TurretMount5" type="Node3D" parent="."]
+position = Vector3(0, 1.05, -3)
+
+[node name="LandingPad" type="Node3D" parent="."]
+position = Vector3(0, 1.25, -3.5)
+
+[node name="CargoBay" type="Node3D" parent="."]
+position = Vector3(0, 0.4, -3.8)
+
+[node name="ScrapIntake" type="Area3D" parent="."]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="ScrapIntake"]
+shape = SubResource("SphereShape3D_intake")

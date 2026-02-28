@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://btoaqgre5ipvb"]
 
-[ext_resource type="PackedScene" path="res://space_station.tscn" id="1_station"]
+[ext_resource type="PackedScene" path="res://mining_mothership.tscn" id="1_mothership"]
 [ext_resource type="Script" uid="uid://dey2ybho8y5vs" path="res://game_manager.gd" id="4_gamemanager"]
 [ext_resource type="PackedScene" path="res://hud.tscn" id="5_hud"]
 [ext_resource type="PackedScene" path="res://collector_ship.tscn" id="6_collector"]
@@ -195,7 +195,7 @@ light_color = Color(0.95, 0.95, 1, 1)
 light_energy = 1.2
 shadow_enabled = true
 
-[node name="SpaceStation" parent="." unique_id=327290490 instance=ExtResource("1_station")]
+[node name="MiningMothership" parent="." unique_id=327290490 instance=ExtResource("1_mothership")]
 
 [node name="GameManager" type="Node3D" parent="." unique_id=1673761791]
 script = ExtResource("4_gamemanager")
