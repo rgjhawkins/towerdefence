@@ -45,10 +45,10 @@ script = ExtResource("2_mg")
 target_range = 15.0
 
 [node name="LandingPad" type="Node3D" parent="."]
-position = Vector3(0, 1.25, -3.5)
+position = Vector3(0, 1.05, -4.5)
 
 [node name="CargoBay" type="Node3D" parent="."]
-position = Vector3(0, 0.4, -3.8)
+position = Vector3(0, 0.3, -4.5)
 
 [node name="ScrapIntake" type="Area3D" parent="."]
 
