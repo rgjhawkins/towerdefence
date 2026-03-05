@@ -113,8 +113,9 @@ func _update(delta: float) -> void:
 	var beam_start := global_position + barrel_forward * 0.14 + Vector3(0.0, 0.08, 0.0)
 
 	var asteroid_radius: float = _mining_target.radius
-	var to_asteroid := (_mining_target.global_position - beam_start).normalized()
-	var hit_point := _mining_target.global_position - to_asteroid * asteroid_radius
+	var target_pos: Vector3 = _mining_target.global_position
+	var to_asteroid := (target_pos - beam_start).normalized()
+	var hit_point := target_pos - to_asteroid * asteroid_radius
 
 	var beam_length := beam_start.distance_to(hit_point)
 	_laser_beam.visible = true
@@ -136,8 +137,9 @@ func _update(delta: float) -> void:
 
 func _spawn_mined_ore(hit_point: Vector3) -> void:
 	var count := randi_range(1, 5)
-	var surface_normal := (hit_point - _mining_target.global_position).normalized()
-	var ore_scene := _mining_target.get_ore_scene()
+	var target_pos: Vector3 = _mining_target.global_position
+	var surface_normal := (hit_point - target_pos).normalized()
+	var ore_scene: PackedScene = _mining_target.get_ore_scene()
 	for i in count:
 		var ore := ore_scene.instantiate() as OreBase
 		if ore:
@@ -158,7 +160,7 @@ func _spawn_mined_ore(hit_point: Vector3) -> void:
 	asteroid_mined.emit(hit_point)
 
 	# Deplete ore from the asteroid; split it when exhausted
-	var remaining := _mining_target.deplete_ore(count)
+	var remaining: int = _mining_target.deplete_ore(count)
 	if remaining <= 0:
 		var field := get_tree().get_first_node_in_group("space_anomalies") as SpaceAnomaly
 		if field:
