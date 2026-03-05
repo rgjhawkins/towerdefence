@@ -76,7 +76,7 @@ func _on_cargo_changed(current: int, capacity: int) -> void:
 
 func _on_cargo_unloaded(amount: int) -> void:
 	if mothership:
-		mothership.collect_scrap(amount)
+		mothership.collect_ore(amount)
 
 
 func _on_collector_health_changed(current: float, _maximum: float) -> void:

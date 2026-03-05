@@ -1,7 +1,7 @@
 class_name CollectorShip
 extends Ship
 
-signal scrap_collected(amount: int)
+signal ore_collected(amount: int)
 signal health_changed(current: float, maximum: float)
 signal cargo_changed(current: int, capacity: int)
 signal cargo_unloaded(amount: int)
@@ -9,11 +9,11 @@ signal destroyed()
 signal asteroid_mined(position: Vector3)
 
 # Flying scrap animation constants
-const SCRAP_SPAWN_OFFSET := 0.3
-const FLYING_SCRAP_SPEED := 8.0
-const FLYING_SCRAP_ARC_HEIGHT := 1.0
-const FLYING_SCRAP_SIZE := Vector3(0.1, 0.1, 0.1)
-const SCRAP_SPIN_SPEED := Vector3(5.0, 7.0, 3.0)
+const ORE_SPAWN_OFFSET := 0.3
+const FLYING_ORE_SPEED := 8.0
+const FLYING_ORE_ARC_HEIGHT := 1.0
+const FLYING_ORE_SIZE := Vector3(0.1, 0.1, 0.1)
+const ORE_SPIN_SPEED := Vector3(5.0, 7.0, 3.0)
 
 # Beam constants
 const BEAM_RADIUS := 0.02
@@ -24,7 +24,7 @@ const DEFAULT_PARKING_POS := Vector3(-4.76, 1, 1.55)
 const DEFAULT_INTAKE_POS := Vector3(0, 2.3, 0)
 
 # Inner class for flying scrap data - replaces Dictionary for type safety
-class FlyingScrapData:
+class FlyingOreData:
 	var node: MeshInstance3D
 	var start: Vector3
 	var target: Vector3
@@ -67,8 +67,8 @@ var parking_bay_pos: Vector3 = DEFAULT_PARKING_POS
 var intake_pos: Vector3 = DEFAULT_INTAKE_POS
 var beam_lines: Array[MeshInstance3D] = []
 var beam_material: StandardMaterial3D
-var scrap_visual_material: StandardMaterial3D
-var flying_scrap: Array = []  # Array of FlyingScrapData
+var ore_visual_material: StandardMaterial3D
+var flying_ore: Array = []  # Array of FlyingOreData
 
 @onready var engine_glow: CSGCylinder3D = $Ship/EngineGlow
 @onready var engine_glow_left: CSGCylinder3D = $Ship/EngineGlowLeft
@@ -100,11 +100,11 @@ func _ready() -> void:
 	_setup_hardpoints()
 
 	# Create glowing scrap visual material
-	scrap_visual_material = StandardMaterial3D.new()
-	scrap_visual_material.albedo_color = Color(1, 0.7, 0.3, 1)
-	scrap_visual_material.emission_enabled = true
-	scrap_visual_material.emission = Color(1, 0.5, 0.2, 1)
-	scrap_visual_material.emission_energy_multiplier = 2.0
+	ore_visual_material = StandardMaterial3D.new()
+	ore_visual_material.albedo_color = Color(1, 0.7, 0.3, 1)
+	ore_visual_material.emission_enabled = true
+	ore_visual_material.emission = Color(1, 0.5, 0.2, 1)
+	ore_visual_material.emission_energy_multiplier = 2.0
 
 
 func take_damage(amount: float) -> void:
@@ -122,7 +122,7 @@ func _process(delta: float) -> void:
 	_update_engine_glow()
 	_process_tractor_beam(delta)
 	_process_unloading(delta)
-	_process_flying_scrap(delta)
+	_process_flying_ore(delta)
 
 
 func _handle_input(delta: float) -> void:
@@ -218,7 +218,7 @@ func _setup_hardpoints() -> void:
 
 
 func _process_tractor_beam(delta: float) -> void:
-	var scrap_pieces := get_tree().get_nodes_in_group("scrap")
+	var ore_pieces := get_tree().get_nodes_in_group("ore")
 	var active_targets: Array[Node3D] = []
 
 	# Don't pull scrap if cargo is full
@@ -227,22 +227,22 @@ func _process_tractor_beam(delta: float) -> void:
 		_update_beam_lines(active_targets)
 		return
 
-	for scrap in scrap_pieces:
-		var scrap_node := scrap as Node3D
-		if not scrap_node:
+	for piece in ore_pieces:
+		var ore_node := piece as Node3D
+		if not ore_node:
 			continue
 
-		var distance := global_position.distance_to(scrap_node.global_position)
+		var distance := global_position.distance_to(ore_node.global_position)
 
 		if distance < tractor_range:
-			active_targets.append(scrap_node)
-			# Pull scrap towards ship
-			var direction := (global_position - scrap_node.global_position).normalized()
-			scrap_node.global_position += direction * tractor_power * delta
+			active_targets.append(ore_node)
+			# Pull ore towards ship
+			var direction := (global_position - ore_node.global_position).normalized()
+			ore_node.global_position += direction * tractor_power * delta
 
 			# Check if close enough to collect
 			if distance < collect_distance:
-				_collect_scrap(scrap_node)
+				_collect_ore(ore_node)
 
 	is_tractoring = active_targets.size() > 0
 	_update_beam_lines(active_targets)
@@ -267,7 +267,7 @@ func _process_unloading(delta: float) -> void:
 		while unload_accumulator >= 1.0 and current_cargo > 0:
 			unload_accumulator -= 1.0
 			current_cargo -= 1
-			_spawn_flying_scrap()
+			_spawn_flying_ore()
 			cargo_unloaded.emit(1)
 			cargo_changed.emit(current_cargo, cargo_capacity)
 	else:
@@ -275,65 +275,65 @@ func _process_unloading(delta: float) -> void:
 		unload_accumulator = 0.0
 
 
-func _spawn_flying_scrap() -> void:
-	var scrap_mesh := MeshInstance3D.new()
+func _spawn_flying_ore() -> void:
+	var ore_mesh := MeshInstance3D.new()
 	var box := BoxMesh.new()
-	box.size = FLYING_SCRAP_SIZE
-	box.material = scrap_visual_material
-	scrap_mesh.mesh = box
+	box.size = FLYING_ORE_SIZE
+	box.material = ore_visual_material
+	ore_mesh.mesh = box
 
 	# Start position with slight random offset from collector
 	var start_pos := global_position + Vector3(
-		randf_range(-SCRAP_SPAWN_OFFSET, SCRAP_SPAWN_OFFSET),
-		randf_range(0, SCRAP_SPAWN_OFFSET),
-		randf_range(-SCRAP_SPAWN_OFFSET, SCRAP_SPAWN_OFFSET)
+		randf_range(-ORE_SPAWN_OFFSET, ORE_SPAWN_OFFSET),
+		randf_range(0, ORE_SPAWN_OFFSET),
+		randf_range(-ORE_SPAWN_OFFSET, ORE_SPAWN_OFFSET)
 	)
 
-	get_tree().root.add_child(scrap_mesh)
-	scrap_mesh.global_position = start_pos
+	get_tree().root.add_child(ore_mesh)
+	ore_mesh.global_position = start_pos
 
-	var scrap_data := FlyingScrapData.new(scrap_mesh, start_pos, intake_pos)
-	flying_scrap.append(scrap_data)
+	var ore_data := FlyingOreData.new(ore_mesh, start_pos, intake_pos)
+	flying_ore.append(ore_data)
 
 
-func _process_flying_scrap(delta: float) -> void:
+func _process_flying_ore(delta: float) -> void:
 	var to_remove: Array[int] = []
 
-	for i in range(flying_scrap.size()):
-		var scrap_data: FlyingScrapData = flying_scrap[i]
+	for i in range(flying_ore.size()):
+		var ore_data: FlyingOreData = flying_ore[i]
 
 		# Move progress based on distance and speed
-		var total_dist := scrap_data.start.distance_to(scrap_data.target)
-		scrap_data.progress += (FLYING_SCRAP_SPEED / total_dist) * delta
+		var total_dist := ore_data.start.distance_to(ore_data.target)
+		ore_data.progress += (FLYING_ORE_SPEED / total_dist) * delta
 
-		if scrap_data.progress >= 1.0:
+		if ore_data.progress >= 1.0:
 			# Reached destination
-			scrap_data.node.queue_free()
+			ore_data.node.queue_free()
 			to_remove.append(i)
 		else:
 			# Interpolate position with slight arc
-			var t := scrap_data.progress
-			var arc_height := FLYING_SCRAP_ARC_HEIGHT * sin(t * PI)
-			var pos := scrap_data.start.lerp(scrap_data.target, t)
+			var t := ore_data.progress
+			var arc_height := FLYING_ORE_ARC_HEIGHT * sin(t * PI)
+			var pos := ore_data.start.lerp(ore_data.target, t)
 			pos.y += arc_height
-			scrap_data.node.global_position = pos
+			ore_data.node.global_position = pos
 
-			# Spin the scrap
-			scrap_data.node.rotation += SCRAP_SPIN_SPEED * delta
+			# Spin the ore
+			ore_data.node.rotation += ORE_SPIN_SPEED * delta
 
 	# Remove completed scrap (reverse order to maintain indices)
 	for i in range(to_remove.size() - 1, -1, -1):
-		flying_scrap.remove_at(to_remove[i])
+		flying_ore.remove_at(to_remove[i])
 
 
-func _collect_scrap(scrap: Node) -> void:
+func _collect_ore(ore: Node) -> void:
 	if current_cargo >= cargo_capacity:
 		return  # Cargo full, can't collect
 
 	current_cargo += 1
 	cargo_changed.emit(current_cargo, cargo_capacity)
-	scrap_collected.emit(1)
-	scrap.queue_free()
+	ore_collected.emit(1)
+	ore.queue_free()
 
 
 func is_cargo_full() -> bool:

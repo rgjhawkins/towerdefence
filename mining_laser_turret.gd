@@ -1,17 +1,17 @@
 class_name MiningLaserTurret
 extends "res://collector_turret_base.gd"
 ## Collector hardpoint turret: auto-aims at the nearest asteroid and fires a
-## continuous mining laser. Emits asteroid_mined when a scrap cycle completes.
+## continuous mining laser. Emits asteroid_mined when an ore cycle completes.
 
 signal asteroid_mined(hit_point: Vector3)
 
-const SCRAP_SCENE   := preload("res://scrap_piece.tscn")
+const ORE_SCENE   := preload("res://ore_piece.tscn")
 const MINING_SOUND  := preload("res://assets/audio/mining_laser.wav")
 const BREAK_SOUND   := preload("res://assets/audio/rock_break.wav")
 const MINING_RANGE  := 8.0
-const MINING_SCRAP_RATE := 0.4   # Scrap pieces per second
+const MINING_ORE_RATE := 0.4   # Ore pieces per second
 const LASER_RADIUS  := 0.03
-const SCRAP_EJECT_SPEED := 1.2
+const ORE_EJECT_SPEED := 1.2
 
 var _mining_target: StaticBody3D = null
 var _laser_beam: MeshInstance3D = null
@@ -128,35 +128,35 @@ func _update(delta: float) -> void:
 	_impact_glow.global_position = hit_point
 	_impact_glow.scale = Vector3(pulse, pulse, pulse)
 
-	_mining_accumulator += MINING_SCRAP_RATE * delta
+	_mining_accumulator += MINING_ORE_RATE * delta
 	if _mining_accumulator >= 1.0:
 		_mining_accumulator -= 1.0
-		_spawn_mined_scrap(hit_point)
+		_spawn_mined_ore(hit_point)
 
 
-func _spawn_mined_scrap(hit_point: Vector3) -> void:
+func _spawn_mined_ore(hit_point: Vector3) -> void:
 	var count := randi_range(1, 5)
 	var surface_normal := (hit_point - _mining_target.global_position).normalized()
 	for i in count:
-		var scrap := SCRAP_SCENE.instantiate()
-		get_tree().root.add_child(scrap)
-		scrap.global_position = hit_point + Vector3(
+		var ore := ORE_SCENE.instantiate()
+		get_tree().root.add_child(ore)
+		ore.global_position = hit_point + Vector3(
 			randf_range(-0.15, 0.15), 0.0, randf_range(-0.15, 0.15)
 		)
 		var scatter := Vector3(randf_range(-1.0, 1.0), 0.0, randf_range(-1.0, 1.0))
 		var eject_dir := Vector3(
 			(surface_normal + scatter).x, 0.0, (surface_normal + scatter).z
 		).normalized()
-		scrap.drift_direction = eject_dir * randf_range(
-			SCRAP_EJECT_SPEED * 0.6, SCRAP_EJECT_SPEED * 1.4
+		ore.drift_direction = eject_dir * randf_range(
+			ORE_EJECT_SPEED * 0.6, ORE_EJECT_SPEED * 1.4
 		)
 
 	_break_audio.play()
 	asteroid_mined.emit(hit_point)
 
-	# Deplete scrap from the asteroid; split it when exhausted
-	var remaining: int = _mining_target.get_meta("scrap_remaining", 1) - count
-	_mining_target.set_meta("scrap_remaining", remaining)
+	# Deplete ore from the asteroid; split it when exhausted
+	var remaining: int = _mining_target.get_meta("ore_remaining", 1) - count
+	_mining_target.set_meta("ore_remaining", remaining)
 	if remaining <= 0:
 		var field := get_tree().get_first_node_in_group("space_anomalies") as SpaceAnomaly
 		if field:

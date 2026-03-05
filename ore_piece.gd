@@ -1,4 +1,4 @@
-class_name ScrapPiece
+class_name OrePiece
 extends Node3D
 
 @export var drift_speed: float = 0.5
@@ -13,7 +13,7 @@ var original_material: StandardMaterial3D = null
 
 
 func _ready() -> void:
-	add_to_group("scrap")
+	add_to_group("ore")
 
 	# Random drift direction
 	drift_direction = Vector3(
@@ -32,7 +32,7 @@ func _ready() -> void:
 	# Get mesh for fading
 	mesh_node = get_node_or_null("Mesh")
 	if mesh_node and mesh_node.material:
-		# Duplicate material so each scrap can fade independently
+		# Duplicate material so each ore piece can fade independently
 		original_material = mesh_node.material.duplicate()
 		original_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 		mesh_node.material = original_material

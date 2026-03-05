@@ -6,7 +6,7 @@ extends Ship
 
 signal health_changed(current: float, maximum: float)
 signal shield_changed(current: float, maximum: float)
-signal scrap_collected(amount: int)
+signal ore_collected(amount: int)
 
 @export var max_health: float = 300.0
 @export var max_shield: float = 150.0
@@ -117,8 +117,8 @@ func take_damage(amount: float) -> void:
 			_on_destroyed()
 
 
-func collect_scrap(amount: int) -> void:
-	scrap_collected.emit(amount)
+func collect_ore(amount: int) -> void:
+	ore_collected.emit(amount)
 
 
 func _on_destroyed() -> void:

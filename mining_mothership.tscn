@@ -60,7 +60,7 @@ position = Vector3(0, 1.5, -7.5)
 [node name="CargoBay" type="Node3D" parent="."]
 position = Vector3(0, 0.3, -4.5)
 
-[node name="ScrapIntake" type="Area3D" parent="."]
+[node name="OreIntake" type="Area3D" parent="."]
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="ScrapIntake"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="OreIntake"]
 shape = SubResource("SphereShape3D_intake")

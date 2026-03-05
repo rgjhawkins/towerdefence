@@ -7,7 +7,7 @@ const CLUSTER_SPREAD := 40.0
 const CLUSTER_CENTRE := Vector3(0.0, 1.5, -18.0)
 const EXPLOSION_SCENE := preload("res://explosion.tscn")
 
-const SCRAP_CAPACITY := {"large": 50, "medium": 25, "small": 12}
+const ORE_CAPACITY := {"large": 50, "medium": 25, "small": 12}
 
 # Full pool of [path, radius, tier] — 30 large + 30 medium + 30 small = 90 variants
 var _pool:        Array = []
@@ -85,7 +85,7 @@ func _spawn_asteroid(pos: Vector3, path: String, radius: float, tier: String) ->
 	body.add_to_group("asteroids")
 	body.set_meta("radius", radius)
 	body.set_meta("tier", tier)
-	body.set_meta("scrap_remaining", SCRAP_CAPACITY[tier])
+	body.set_meta("ore_remaining", ORE_CAPACITY[tier])
 	add_child(body)
 	_bodies.append(body)
 
