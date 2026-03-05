@@ -140,6 +140,7 @@ func _try_fire() -> void:
 
 
 func _fire() -> void:
+	_drain_energy(5.0)
 	var bullet := BULLET_SCENE.instantiate() as Bullet
 	bullet.speed = BULLET_SPEED
 	bullet.damage = DAMAGE

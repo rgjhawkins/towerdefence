@@ -139,6 +139,7 @@ func _update(delta: float) -> void:
 	_impact_glow.global_position = hit_point
 	_impact_glow.scale = Vector3(pulse, pulse, pulse)
 
+	_drain_energy(5.0 * delta)
 	_mining_accumulator += MINING_ORE_RATE * delta
 	if _mining_accumulator >= 1.0:
 		_mining_accumulator -= 1.0

@@ -68,6 +68,14 @@ func _claim_target(alien: Node3D) -> void:
 	_claimed[alien] = self
 
 
+## Drain energy from the parent CollectorShip. Safe to call every frame.
+func _drain_energy(amount: float) -> void:
+	var ship := get_tree().get_first_node_in_group("collectors") as CollectorShip
+	if ship:
+		ship.energy = maxf(0.0, ship.energy - amount)
+		ship.energy_changed.emit(ship.energy, ship.max_energy)
+
+
 ## Release this turret's current claim, if any.
 func _release_target() -> void:
 	for alien in _claimed.keys():
