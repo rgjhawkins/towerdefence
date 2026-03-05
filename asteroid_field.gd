@@ -17,7 +17,7 @@ var _pool_small:  Array = []
 var _mothership_pos: Vector3 = Vector3.ZERO
 
 # Per-asteroid state
-var _bodies:        Array[AsteroidBase] = []
+var _bodies:        Array               = []
 var _rot_axes:      Array[Vector3]      = []
 var _rot_speeds:    Array[float]        = []
 var _hole_markers:  Array[Node3D]       = []
@@ -66,7 +66,7 @@ func _pick_asteroid_type() -> String:
 	else: return "M"           # 10% metallic — rarest
 
 
-func _make_asteroid(asteroid_type: String) -> AsteroidBase:
+func _make_asteroid(asteroid_type: String) -> StaticBody3D:
 	match asteroid_type:
 		"S": return STypeAsteroid.new()
 		"M": return MTypeAsteroid.new()
@@ -198,7 +198,7 @@ func _spawn_asteroid_by_tier(pos: Vector3, tier: String, asteroid_type: String) 
 	_spawn_asteroid(pos, entry[0], entry[1], tier, asteroid_type)
 
 
-func _remove_body(body: AsteroidBase) -> void:
+func _remove_body(body: StaticBody3D) -> void:
 	var idx := _bodies.find(body)
 	if idx == -1:
 		return

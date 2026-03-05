@@ -5,8 +5,6 @@ extends StaticBody3D
 ## Subclasses override the virtual methods to define type identity,
 ## appearance, ore type, and ore capacity.
 
-const ORE_SCENE := preload("res://ore_piece.tscn")
-
 var tier:          String = "large"
 var radius:        float  = 2.0
 var ore_remaining: int    = 0
@@ -41,7 +39,7 @@ func _get_surface_material() -> StandardMaterial3D:
 ## Ore scene to instantiate when this asteroid is mined.
 ## Override to return a type-specific ore scene.
 func get_ore_scene() -> PackedScene:
-	return ORE_SCENE
+	return load("res://ore_piece.tscn") as PackedScene
 
 
 # ── Setup ─────────────────────────────────────────────────────────────────────

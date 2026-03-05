@@ -13,7 +13,7 @@ const MINING_ORE_RATE := 0.4   # Ore pieces per second
 const LASER_RADIUS  := 0.03
 const ORE_EJECT_SPEED := 1.2
 
-var _mining_target: AsteroidBase = null
+var _mining_target = null  # AsteroidBase at runtime
 var _laser_beam: MeshInstance3D = null
 var _laser_material: StandardMaterial3D = null
 var _impact_glow: MeshInstance3D = null
@@ -76,10 +76,10 @@ func _build_visuals() -> void:
 
 func _update(delta: float) -> void:
 	# Find closest asteroid in range
-	var closest: AsteroidBase = null
+	var closest = null
 	var closest_dist := MINING_RANGE
 	for node in get_tree().get_nodes_in_group("asteroids"):
-		var asteroid := node as AsteroidBase
+		var asteroid := node as StaticBody3D
 		if not asteroid:
 			continue
 		var dist := global_position.distance_to(asteroid.global_position)
