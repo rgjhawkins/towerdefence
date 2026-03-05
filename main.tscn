@@ -2,6 +2,7 @@
 
 [ext_resource type="PackedScene" path="res://mining_mothership.tscn" id="1_mothership"]
 [ext_resource type="Script" uid="uid://dey2ybho8y5vs" path="res://game_manager.gd" id="4_gamemanager"]
+[ext_resource type="Script" path="res://camera_controller.gd" id="9_camera"]
 [ext_resource type="PackedScene" path="res://hud.tscn" id="5_hud"]
 [ext_resource type="PackedScene" path="res://collector_ship.tscn" id="6_collector"]
 [ext_resource type="Script" path="res://asteroid_field.gd" id="8_asteroidfield"]
@@ -106,10 +107,13 @@ var far_stars: Array[MeshInstance3D] = []
 @onready var mesh_mid: QuadMesh = $MeshMid.mesh
 @onready var mesh_far: QuadMesh = $MeshFar.mesh
 
+var _camera: Camera3D = null
+
 func _ready() -> void:
 	_spawn_layer(close_stars, star_count_close, mesh_close, -5.0, -2.0)
 	_spawn_layer(mid_stars, star_count_mid, mesh_mid, -15.0, -5.0)
 	_spawn_layer(far_stars, star_count_far, mesh_far, -40.0, -15.0)
+	_camera = get_viewport().get_camera_3d()
 
 func _spawn_layer(layer: Array[MeshInstance3D], count: int, mesh: Mesh, y_min: float, y_max: float) -> void:
 	for i in count:
@@ -124,6 +128,9 @@ func _spawn_layer(layer: Array[MeshInstance3D], count: int, mesh: Mesh, y_min: f
 		layer.append(star)
 
 func _process(delta: float) -> void:
+	if _camera:
+		global_position.x = _camera.global_position.x
+		global_position.z = _camera.global_position.z
 	_move_layer(close_stars, speed_close, delta)
 	_move_layer(mid_stars, speed_mid, delta)
 	_move_layer(far_stars, speed_far, delta)
@@ -173,6 +180,7 @@ environment = SubResource("Environment_space")
 [node name="Camera3D" type="Camera3D" parent="." unique_id=423244476]
 transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, 0, 45, 0)
 fov = 60.0
+script = ExtResource("9_camera")
 
 [node name="ParallaxStarfield" type="Node3D" parent="." unique_id=1314827605]
 script = SubResource("GDScript_starfield")

@@ -67,6 +67,9 @@ func _build_shot_sound() -> AudioStreamWAV:
 
 func _update(delta: float) -> void:
 	_time_since_shot += delta
+	if _target and not is_instance_valid(_target):
+		_release_target()
+		_target = null
 	_acquire_target()
 	if _target and is_instance_valid(_target):
 		_track_target(delta)
@@ -85,11 +88,20 @@ func _acquire_target() -> void:
 		# Don't shoot bugs already attached to this ship
 		if alien.get_parent() is CollectorShip:
 			continue
+		# Skip targets already claimed by another turret
+		if Turret.is_claimed(alien) and _claimed.get(alien) != self:
+			continue
 		var d := global_position.distance_to(alien.global_position)
 		if d < nearest_dist:
 			nearest_dist = d
 			nearest = alien
-	_target = nearest
+
+	if nearest != _target:
+		if nearest:
+			_claim_target(nearest)
+		else:
+			_release_target()
+		_target = nearest
 
 
 func _lead_position() -> Vector3:

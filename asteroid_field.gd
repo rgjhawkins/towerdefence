@@ -1,9 +1,9 @@
 class_name AsteroidField
 extends "res://space_anomaly.gd"
 
-const NUM_ASTEROIDS  := 5
+const NUM_ASTEROIDS  := 50
 const NUM_HOLES      := 3
-const CLUSTER_SPREAD := 10.0
+const CLUSTER_SPREAD := 40.0
 const CLUSTER_CENTRE := Vector3(0.0, 1.5, -18.0)
 const EXPLOSION_SCENE := preload("res://explosion.tscn")
 
@@ -56,11 +56,15 @@ func _spawn_cluster() -> void:
 
 
 func _pick_position(placed: Array, new_radius: float) -> Vector3:
-	for _attempt in 200:
+	for _attempt in 300:
+		# Polar coords with squared radius — high density at centre, tapering to edge
+		var angle := randf() * TAU
+		var t     := randf()
+		var r     := t * t * CLUSTER_SPREAD          # squaring biases toward centre
 		var offset := Vector3(
-			randf_range(-CLUSTER_SPREAD, CLUSTER_SPREAD),
-			randf_range(-CLUSTER_SPREAD * 0.25, CLUSTER_SPREAD * 0.25),
-			randf_range(-CLUSTER_SPREAD, CLUSTER_SPREAD)
+			cos(angle) * r,
+			randf_range(-1.0, 1.0) * (1.0 - t),     # less vertical spread at the edges
+			sin(angle) * r
 		)
 		var pos   := CLUSTER_CENTRE + offset
 		var valid := true
@@ -71,7 +75,7 @@ func _pick_position(placed: Array, new_radius: float) -> Vector3:
 				break
 		if valid:
 			return pos
-	# Fallback: offset along X so it's never truly on top of another
+	# Fallback: nudge outward so it never stacks exactly on another
 	return CLUSTER_CENTRE + Vector3(placed.size() * (new_radius * 2.0 + 1.0), 0.0, 0.0)
 
 
