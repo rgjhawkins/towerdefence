@@ -56,6 +56,7 @@ class FlyingOreData:
 var _attached_bugs: Array = []
 var _hardpoint_a: Node3D = null  # Mining laser
 var _hardpoint_b: Node3D = null  # Defensive gun
+var _turrets: Array = []         # All Turret instances on this ship
 var velocity: Vector3 = Vector3.ZERO
 var is_thrusting: bool = false
 var is_tractoring: bool = false
@@ -203,18 +204,27 @@ func _setup_hardpoints() -> void:
 	var mining_laser := MiningLaserTurret.new()
 	_hardpoint_a.add_child(mining_laser)
 	mining_laser.asteroid_mined.connect(func(pos: Vector3) -> void: asteroid_mined.emit(pos))
+	_turrets.append(mining_laser)
 
 	# Hardpoint B — machinegun on top of the ship, slightly rear
 	_hardpoint_b = Node3D.new()
 	_hardpoint_b.position = Vector3(0.0, 0.35, 0.15)
 	get_node("Ship").add_child(_hardpoint_b)
-	_hardpoint_b.add_child(MachinegunTurret.new())
+	var machinegun := MachinegunTurret.new()
+	_hardpoint_b.add_child(machinegun)
+	_turrets.append(machinegun)
 
 	# Hardpoint C — spotlight on the front underside
 	var hardpoint_c := Node3D.new()
 	hardpoint_c.position = Vector3(0.0, -0.15, -0.45)
 	get_node("Ship").add_child(hardpoint_c)
-	hardpoint_c.add_child(SpotlightTurret.new())
+	var spotlight := SpotlightTurret.new()
+	hardpoint_c.add_child(spotlight)
+	_turrets.append(spotlight)
+
+
+func get_turrets() -> Array:
+	return _turrets
 
 
 func _process_tractor_beam(delta: float) -> void:

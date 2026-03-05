@@ -24,3 +24,19 @@ layout_mode = 2
 theme_override_colors/font_color = Color(0.6, 0.8, 1, 1)
 theme_override_font_sizes/font_size = 28
 text = "Cargo Hold: 0 / 50"
+
+[node name="TurretBar" type="MarginContainer" parent="."]
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+grow_horizontal = 2
+offset_left = -300.0
+offset_top = -130.0
+offset_right = 300.0
+offset_bottom = -20.0
+
+[node name="TurretButtons" type="HBoxContainer" parent="TurretBar"]
+layout_mode = 2
+alignment = 1
+theme_override_constants/separation = 20

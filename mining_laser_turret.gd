@@ -25,6 +25,16 @@ var _break_audio: AudioStreamPlayer = null
 func get_turret_name() -> String:
 	return "Mining Laser"
 
+func get_icon_color() -> Color:
+	return Color(1.0, 0.35, 0.1)
+
+func _on_deactivated() -> void:
+	_mining_target = null
+	_laser_beam.visible  = false
+	_impact_glow.visible = false
+	if _audio.playing:
+		_audio.stop()
+
 
 func _ready() -> void:
 	_build_visuals()

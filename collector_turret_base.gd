@@ -23,8 +23,34 @@ func _update(_delta: float) -> void:
 	pass
 
 
+## Override to return the button colour shown in the HUD.
+func get_icon_color() -> Color:
+	return Color(0.5, 0.5, 0.5)
+
+
+## Called when the turret is deactivated — override to hide effects/stop audio.
+func _on_deactivated() -> void:
+	pass
+
+
+## Called when the turret is reactivated.
+func _on_activated() -> void:
+	pass
+
+
+var active: bool = true:
+	set(value):
+		active = value
+		if not active:
+			_release_target()
+			_on_deactivated()
+		else:
+			_on_activated()
+
+
 func _process(delta: float) -> void:
-	_update(delta)
+	if active:
+		_update(delta)
 
 
 func _exit_tree() -> void:

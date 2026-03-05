@@ -16,6 +16,13 @@ var _target: Node3D = null
 func get_turret_name() -> String:
 	return "Spotlight"
 
+func get_icon_color() -> Color:
+	return Color(0.5, 0.85, 1.0)
+
+func _on_deactivated() -> void:
+	_target = null
+	_light.visible = false
+
 
 func _ready() -> void:
 	_build_mesh()

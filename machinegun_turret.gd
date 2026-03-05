@@ -26,6 +26,12 @@ var _shot_player: AudioStreamPlayer = null
 func get_turret_name() -> String:
 	return "Machinegun"
 
+func get_icon_color() -> Color:
+	return Color(0.95, 0.65, 0.1)
+
+func _on_deactivated() -> void:
+	_target = null
+
 
 func _ready() -> void:
 	_build_mesh()
