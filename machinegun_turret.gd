@@ -130,6 +130,8 @@ func _track_target(delta: float) -> void:
 func _try_fire() -> void:
 	if _time_since_shot < 60.0 / rpm:
 		return
+	if not _has_energy(5.0):
+		return
 	var aim := _lead_position()
 	var fwd := -_barrel.global_transform.basis.z.normalized()
 	var to_aim := (aim - _muzzle.global_position).normalized()

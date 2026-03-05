@@ -8,6 +8,8 @@ radius = 4.0
 
 [node name="MiningMothership" type="Node3D"]
 script = ExtResource("1_script")
+max_energy = 1000.0
+energy_regen = 100.0
 
 [node name="TurretMount1" type="Node3D" parent="."]
 position = Vector3(0, 1.5, 3)

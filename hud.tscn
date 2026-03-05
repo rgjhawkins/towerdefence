@@ -35,7 +35,7 @@ theme_override_font_sizes/font_size = 22
 text = "Energy"
 vertical_alignment = 1
 
-[node name="EnergyBarBg" type="PanelContainer" parent="CollectorContainer/VBox/EnergyRow"]
+[node name="EnergyBarBg" type="Panel" parent="CollectorContainer/VBox/EnergyRow"]
 layout_mode = 2
 custom_minimum_size = Vector2(160, 18)
 

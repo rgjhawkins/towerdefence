@@ -25,6 +25,7 @@ func _ready() -> void:
 
 	health = max_health
 	shield = max_shield
+	energy = max_energy  # max_energy inherited from Ship
 
 	# Load the Blender-generated model and attach it
 	var model_res := load("res://assets/mothership/mothership.glb") as PackedScene
@@ -99,6 +100,7 @@ func _process(delta: float) -> void:
 	if shield < max_shield:
 		shield = minf(shield + shield_regen_rate * delta, max_shield)
 		shield_changed.emit(shield, max_shield)
+	_regen_energy(delta)
 
 
 func take_damage(amount: float) -> void:

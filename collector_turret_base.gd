@@ -68,12 +68,29 @@ func _claim_target(alien: Node3D) -> void:
 	_claimed[alien] = self
 
 
-## Drain energy from the parent CollectorShip. Safe to call every frame.
+## Returns the Ship that owns this turret, or null.
+func _get_owner_ship() -> Ship:
+	var node: Node = self
+	while node:
+		if node is Ship:
+			return node as Ship
+		node = node.get_parent()
+	return null
+
+
+## Returns true if the owning ship has at least `amount` energy.
+func _has_energy(amount: float) -> bool:
+	var ship := _get_owner_ship()
+	return ship != null and ship.energy >= amount
+
+
+## Drain energy from the ship this turret belongs to.
 func _drain_energy(amount: float) -> void:
-	var ship := get_tree().get_first_node_in_group("collectors") as CollectorShip
+	var ship := _get_owner_ship()
 	if ship:
 		ship.energy = maxf(0.0, ship.energy - amount)
 		ship.energy_changed.emit(ship.energy, ship.max_energy)
+
 
 
 ## Release this turret's current claim, if any.

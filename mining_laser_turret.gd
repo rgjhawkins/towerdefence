@@ -107,6 +107,13 @@ func _update(delta: float) -> void:
 			_audio.stop()
 		return
 
+	if not _has_energy(0.1):
+		_laser_beam.visible = false
+		_impact_glow.visible = false
+		if _audio.playing:
+			_audio.stop()
+		return
+
 	if not _audio.playing:
 		_audio.play()
 

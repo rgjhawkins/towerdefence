@@ -3,7 +3,6 @@ extends Ship
 
 signal ore_collected(amount: int)
 signal health_changed(current: float, maximum: float)
-signal energy_changed(current: float, maximum: float)
 signal cargo_changed(current: int, capacity: int)
 signal cargo_unloaded(amount: int)
 signal destroyed()
@@ -38,8 +37,6 @@ class FlyingOreData:
 		progress = 0.0
 
 @export var max_health: float = 100.0
-@export var max_energy: float = 100.0
-@export var energy_regen: float = 1.0   # Energy per second
 @export var rotation_speed: float = 180.0  # Degrees per second
 @export var thrust_power: float = 15.0
 @export var max_speed: float = 12.0
@@ -64,8 +61,8 @@ var velocity: Vector3 = Vector3.ZERO
 var is_thrusting: bool = false
 var is_tractoring: bool = false
 var is_unloading: bool = false
+var is_docked: bool = false
 var health: float = 100.0
-var energy: float = 100.0
 var current_cargo: int = 0
 var unload_accumulator: float = 0.0
 var parking_bay_pos: Vector3 = DEFAULT_PARKING_POS
@@ -135,7 +132,8 @@ func _process(delta: float) -> void:
 
 func _regen_energy(delta: float) -> void:
 	if energy < max_energy:
-		energy = minf(energy + energy_regen * delta, max_energy)
+		var rate := 10.0 if is_docked else energy_regen
+		energy = minf(energy + rate * delta, max_energy)
 		energy_changed.emit(energy, max_energy)
 
 
@@ -279,7 +277,9 @@ func _process_unloading(delta: float) -> void:
 	# Check distance to parking bay
 	var dist_to_parking := global_position.distance_to(parking_bay_pos)
 
-	if dist_to_parking <= unload_range:
+	is_docked = dist_to_parking <= unload_range
+
+	if is_docked:
 		_clear_attached_bugs()
 
 	if dist_to_parking <= unload_range and current_cargo > 0:
