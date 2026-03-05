@@ -1,9 +1,10 @@
 class_name HUD
 extends CanvasLayer
 
-@onready var collector_health_label: Label = $CollectorContainer/VBox/CollectorHealthLabel
-@onready var cargo_label: Label = $CollectorContainer/VBox/CargoLabel
-@onready var turret_buttons: HBoxContainer = $TurretBar/TurretButtons
+@onready var collector_health_label: Label    = $CollectorContainer/VBox/CollectorHealthLabel
+@onready var cargo_label:             Label    = $CollectorContainer/VBox/CargoLabel
+@onready var energy_bar:              ColorRect = $CollectorContainer/VBox/EnergyRow/EnergyBarBg/EnergyBar
+@onready var turret_buttons:          HBoxContainer = $TurretBar/TurretButtons
 
 var collector_health: float = 100.0
 var max_collector_health: float = 100.0
@@ -36,6 +37,13 @@ func update_cargo(current: int, capacity: int) -> void:
 	cargo_current = current
 	cargo_capacity = capacity
 	cargo_label.text = "Cargo Hold: %d / %d" % [cargo_current, cargo_capacity]
+
+
+func update_energy(current: float, maximum: float) -> void:
+	var pct := current / maximum if maximum > 0.0 else 0.0
+	energy_bar.anchor_right = pct
+	# Shift colour from green → yellow → red as energy drops
+	energy_bar.color = Color(1.0 - pct, pct * 0.9, pct * 0.4, 1.0)
 
 
 # ── Turret bar ────────────────────────────────────────────────────────────────

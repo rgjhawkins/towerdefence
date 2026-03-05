@@ -61,6 +61,7 @@ func _spawn_collector() -> void:
 				collector_ship.intake_node = cargo_bay
 
 		collector_ship.health_changed.connect(_on_collector_health_changed)
+		collector_ship.energy_changed.connect(_on_collector_energy_changed)
 		collector_ship.cargo_changed.connect(_on_cargo_changed)
 		collector_ship.cargo_unloaded.connect(_on_cargo_unloaded)
 		collector_ship.asteroid_mined.connect(_on_asteroid_mined)
@@ -82,6 +83,11 @@ func _on_cargo_unloaded(amount: int) -> void:
 func _on_collector_health_changed(current: float, _maximum: float) -> void:
 	if hud:
 		hud.update_collector_health(current)
+
+
+func _on_collector_energy_changed(current: float, maximum: float) -> void:
+	if hud:
+		hud.update_energy(current, maximum)
 
 
 func _on_asteroid_mined(hit_point: Vector3) -> void:

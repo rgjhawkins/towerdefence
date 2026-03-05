@@ -3,6 +3,7 @@ extends Ship
 
 signal ore_collected(amount: int)
 signal health_changed(current: float, maximum: float)
+signal energy_changed(current: float, maximum: float)
 signal cargo_changed(current: int, capacity: int)
 signal cargo_unloaded(amount: int)
 signal destroyed()
@@ -37,6 +38,8 @@ class FlyingOreData:
 		progress = 0.0
 
 @export var max_health: float = 100.0
+@export var max_energy: float = 100.0
+@export var energy_regen: float = 1.0   # Energy per second
 @export var rotation_speed: float = 180.0  # Degrees per second
 @export var thrust_power: float = 15.0
 @export var max_speed: float = 12.0
@@ -62,6 +65,7 @@ var is_thrusting: bool = false
 var is_tractoring: bool = false
 var is_unloading: bool = false
 var health: float = 100.0
+var energy: float = 100.0
 var current_cargo: int = 0
 var unload_accumulator: float = 0.0
 var parking_bay_pos: Vector3 = DEFAULT_PARKING_POS
@@ -81,7 +85,9 @@ var flying_ore: Array = []  # Array of FlyingOreData
 func _ready() -> void:
 	add_to_group("collectors")
 	health = max_health
+	energy = max_energy
 	health_changed.emit(health, max_health)
+	energy_changed.emit(energy, max_energy)
 	cargo_changed.emit(current_cargo, cargo_capacity)
 
 	# Get positions from nodes if assigned, otherwise use defaults
@@ -124,6 +130,13 @@ func _process(delta: float) -> void:
 	_process_tractor_beam(delta)
 	_process_unloading(delta)
 	_process_flying_ore(delta)
+	_regen_energy(delta)
+
+
+func _regen_energy(delta: float) -> void:
+	if energy < max_energy:
+		energy = minf(energy + energy_regen * delta, max_energy)
+		energy_changed.emit(energy, max_energy)
 
 
 func _handle_input(delta: float) -> void:

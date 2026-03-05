@@ -25,6 +25,26 @@ theme_override_colors/font_color = Color(0.6, 0.8, 1, 1)
 theme_override_font_sizes/font_size = 28
 text = "Cargo Hold: 0 / 50"
 
+[node name="EnergyRow" type="HBoxContainer" parent="CollectorContainer/VBox"]
+layout_mode = 2
+
+[node name="EnergyLabel" type="Label" parent="CollectorContainer/VBox/EnergyRow"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.3, 1, 0.5, 1)
+theme_override_font_sizes/font_size = 22
+text = "Energy"
+vertical_alignment = 1
+
+[node name="EnergyBarBg" type="PanelContainer" parent="CollectorContainer/VBox/EnergyRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(160, 18)
+
+[node name="EnergyBar" type="ColorRect" parent="CollectorContainer/VBox/EnergyRow/EnergyBarBg"]
+layout_mode = 2
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0.2, 0.9, 0.4, 1)
+
 [node name="TurretBar" type="MarginContainer" parent="."]
 anchor_left = 0.5
 anchor_top = 1.0
