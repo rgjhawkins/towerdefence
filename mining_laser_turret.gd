@@ -5,7 +5,7 @@ extends "res://collector_turret_base.gd"
 
 signal asteroid_mined(hit_point: Vector3)
 
-const ORE_SCENE   := preload("res://ore_piece.tscn")
+const DEFAULT_ORE_SCENE := preload("res://ore_piece.tscn")
 const MINING_SOUND  := preload("res://assets/audio/mining_laser.wav")
 const BREAK_SOUND   := preload("res://assets/audio/rock_break.wav")
 const MINING_RANGE  := 8.0
@@ -13,7 +13,7 @@ const MINING_ORE_RATE := 0.4   # Ore pieces per second
 const LASER_RADIUS  := 0.03
 const ORE_EJECT_SPEED := 1.2
 
-var _mining_target: StaticBody3D = null
+var _mining_target: AsteroidBase = null
 var _laser_beam: MeshInstance3D = null
 var _laser_material: StandardMaterial3D = null
 var _impact_glow: MeshInstance3D = null
@@ -76,10 +76,10 @@ func _build_visuals() -> void:
 
 func _update(delta: float) -> void:
 	# Find closest asteroid in range
-	var closest: StaticBody3D = null
+	var closest: AsteroidBase = null
 	var closest_dist := MINING_RANGE
 	for node in get_tree().get_nodes_in_group("asteroids"):
-		var asteroid := node as StaticBody3D
+		var asteroid := node as AsteroidBase
 		if not asteroid:
 			continue
 		var dist := global_position.distance_to(asteroid.global_position)
@@ -112,7 +112,7 @@ func _update(delta: float) -> void:
 	var barrel_forward := -global_transform.basis.z
 	var beam_start := global_position + barrel_forward * 0.14 + Vector3(0.0, 0.08, 0.0)
 
-	var asteroid_radius: float = _mining_target.get_meta("radius", 1.0)
+	var asteroid_radius: float = _mining_target.radius
 	var to_asteroid := (_mining_target.global_position - beam_start).normalized()
 	var hit_point := _mining_target.global_position - to_asteroid * asteroid_radius
 
@@ -137,8 +137,11 @@ func _update(delta: float) -> void:
 func _spawn_mined_ore(hit_point: Vector3) -> void:
 	var count := randi_range(1, 5)
 	var surface_normal := (hit_point - _mining_target.global_position).normalized()
+	var ore_scene := _mining_target.get_ore_scene()
 	for i in count:
-		var ore := ORE_SCENE.instantiate()
+		var ore := ore_scene.instantiate() as OreBase
+		if ore:
+			ore.ore_type = _mining_target.get_ore_type()
 		get_tree().root.add_child(ore)
 		ore.global_position = hit_point + Vector3(
 			randf_range(-0.15, 0.15), 0.0, randf_range(-0.15, 0.15)
@@ -155,8 +158,7 @@ func _spawn_mined_ore(hit_point: Vector3) -> void:
 	asteroid_mined.emit(hit_point)
 
 	# Deplete ore from the asteroid; split it when exhausted
-	var remaining: int = _mining_target.get_meta("ore_remaining", 1) - count
-	_mining_target.set_meta("ore_remaining", remaining)
+	var remaining := _mining_target.deplete_ore(count)
 	if remaining <= 0:
 		var field := get_tree().get_first_node_in_group("space_anomalies") as SpaceAnomaly
 		if field:

@@ -5,9 +5,8 @@ const NUM_ASTEROIDS  := 50
 const NUM_HOLES      := 3
 const CLUSTER_SPREAD := 40.0
 const CLUSTER_CENTRE := Vector3(0.0, 1.5, -18.0)
+const MOTHERSHIP_CLEAR_RADIUS := 12.0  # No asteroids within this distance of the mothership
 const EXPLOSION_SCENE := preload("res://explosion.tscn")
-
-const ORE_CAPACITY := {"large": 50, "medium": 25, "small": 12}
 
 # Full pool of [path, radius, tier] — 30 large + 30 medium + 30 small = 90 variants
 var _pool:        Array = []
@@ -15,8 +14,10 @@ var _pool_large:  Array = []
 var _pool_medium: Array = []
 var _pool_small:  Array = []
 
+var _mothership_pos: Vector3 = Vector3.ZERO
+
 # Per-asteroid state
-var _bodies:        Array[StaticBody3D] = []
+var _bodies:        Array[AsteroidBase] = []
 var _rot_axes:      Array[Vector3]      = []
 var _rot_speeds:    Array[float]        = []
 var _hole_markers:  Array[Node3D]       = []
@@ -25,6 +26,9 @@ var _holes_by_body: Dictionary          = {}  # StaticBody3D → Array[Node3D]
 
 func _ready() -> void:
 	add_to_group("space_anomalies")
+	var mothership := get_tree().get_first_node_in_group("mothership") as Node3D
+	if mothership:
+		_mothership_pos = mothership.global_position
 	_build_pool()
 	_spawn_cluster()
 
@@ -52,7 +56,21 @@ func _spawn_cluster() -> void:
 		var tier:   String = entry[2]
 		var pos     := _pick_position(placed, radius)
 		placed.append({"pos": pos, "radius": radius})
-		_spawn_asteroid(pos, path, radius, tier)
+		_spawn_asteroid(pos, path, radius, tier, _pick_asteroid_type())
+
+
+func _pick_asteroid_type() -> String:
+	var r := randf()
+	if r < 0.60: return "C"   # 60% carbonaceous — most common
+	elif r < 0.90: return "S"  # 30% silicaceous
+	else: return "M"           # 10% metallic — rarest
+
+
+func _make_asteroid(asteroid_type: String) -> AsteroidBase:
+	match asteroid_type:
+		"S": return STypeAsteroid.new()
+		"M": return MTypeAsteroid.new()
+		_:   return CTypeAsteroid.new()
 
 
 func _pick_position(placed: Array, new_radius: float) -> Vector3:
@@ -67,6 +85,12 @@ func _pick_position(placed: Array, new_radius: float) -> Vector3:
 			sin(angle) * r
 		)
 		var pos   := CLUSTER_CENTRE + offset
+		# Reject positions inside the mothership exclusion zone (XZ only)
+		var flat_pos := Vector3(pos.x, _mothership_pos.y, pos.z)
+		var flat_ms  := Vector3(_mothership_pos.x, _mothership_pos.y, _mothership_pos.z)
+		if flat_pos.distance_to(flat_ms) < MOTHERSHIP_CLEAR_RADIUS + new_radius:
+			continue
+
 		var valid := true
 		for p in placed:
 			var min_dist: float = p["radius"] + new_radius + 0.8
@@ -79,40 +103,12 @@ func _pick_position(placed: Array, new_radius: float) -> Vector3:
 	return CLUSTER_CENTRE + Vector3(placed.size() * (new_radius * 2.0 + 1.0), 0.0, 0.0)
 
 
-func _spawn_asteroid(pos: Vector3, path: String, radius: float, tier: String) -> void:
-	var body := StaticBody3D.new()
+func _spawn_asteroid(pos: Vector3, path: String, radius: float, tier: String, asteroid_type: String) -> void:
+	var body := _make_asteroid(asteroid_type)
 	body.position = pos
-	body.add_to_group("asteroids")
-	body.set_meta("radius", radius)
-	body.set_meta("tier", tier)
-	body.set_meta("ore_remaining", ORE_CAPACITY[tier])
 	add_child(body)
+	body.setup(path, radius, tier)
 	_bodies.append(body)
-
-	var scene: PackedScene = load(path)
-	var mesh_inst := scene.instantiate() as Node3D
-	mesh_inst.scale = Vector3.ONE * radius
-	body.add_child(mesh_inst)
-
-	# Trimesh collision derived from the actual mesh, scaled to match
-	var col := CollisionShape3D.new()
-	var mi: MeshInstance3D = null
-	for child in mesh_inst.get_children():
-		if child is MeshInstance3D:
-			mi = child
-			break
-	if mi:
-		var trimesh := mi.mesh.create_trimesh_shape() as ConcavePolygonShape3D
-		var faces := trimesh.get_faces()
-		for i in faces.size():
-			faces[i] *= radius
-		trimesh.set_faces(faces)
-		col.shape = trimesh
-	else:
-		var sphere := SphereShape3D.new()
-		sphere.radius = radius
-		col.shape = sphere
-	body.add_child(col)
 
 	_rot_axes.append(Vector3(randf_range(-1.0, 1.0),
 							 randf_range(-1.0, 1.0),
@@ -120,7 +116,8 @@ func _spawn_asteroid(pos: Vector3, path: String, radius: float, tier: String) ->
 	_rot_speeds.append(randf_range(0.25, 0.65))
 
 	_holes_by_body[body] = []
-	_create_holes(mesh_inst, body, radius)
+	if body.mesh_root:
+		_create_holes(body.mesh_root, body, radius)
 
 
 # ── Holes / spawn markers ─────────────────────────────────────────────────────
@@ -173,8 +170,8 @@ func get_spawn_marker_for_body(body: StaticBody3D) -> Node3D:
 func deplete_body(body: StaticBody3D) -> void:
 	var pos  := body.global_position
 	var tier: String = body.get_meta("tier", "small")
+	var asteroid_type: String = body.get_meta("asteroid_type", "C")
 
-	# Dust/explosion at the break point
 	var exp := EXPLOSION_SCENE.instantiate() as Node3D
 	get_tree().root.add_child(exp)
 	exp.global_position = pos
@@ -182,29 +179,26 @@ func deplete_body(body: StaticBody3D) -> void:
 	_remove_body(body)
 	body.queue_free()
 
-	# Split into two of the next size down
+	# Split into two fragments of the next size down, preserving asteroid type
 	match tier:
 		"large":
-			# Place the two medium fragments on opposite sides so they never overlap
-			# medium radius = 1.2, so offset each by 1.2 + 0.8 = 2.0 from centre
 			var split_dir := Vector3(randf_range(-1.0, 1.0), 0.0, randf_range(-1.0, 1.0)).normalized()
-			_spawn_asteroid_by_tier(pos + split_dir * 2.0, "medium")
-			_spawn_asteroid_by_tier(pos - split_dir * 2.0, "medium")
+			_spawn_asteroid_by_tier(pos + split_dir * 2.0, "medium", asteroid_type)
+			_spawn_asteroid_by_tier(pos - split_dir * 2.0, "medium", asteroid_type)
 		"medium":
-			# small radius = 0.6, so offset each by 0.6 + 0.8 = 1.4 from centre
 			var split_dir := Vector3(randf_range(-1.0, 1.0), 0.0, randf_range(-1.0, 1.0)).normalized()
-			_spawn_asteroid_by_tier(pos + split_dir * 1.4, "small")
-			_spawn_asteroid_by_tier(pos - split_dir * 1.4, "small")
+			_spawn_asteroid_by_tier(pos + split_dir * 1.4, "small", asteroid_type)
+			_spawn_asteroid_by_tier(pos - split_dir * 1.4, "small", asteroid_type)
 		# small → crumbles to dust, nothing spawns
 
 
-func _spawn_asteroid_by_tier(pos: Vector3, tier: String) -> void:
+func _spawn_asteroid_by_tier(pos: Vector3, tier: String, asteroid_type: String) -> void:
 	var pool: Array = _pool_large if tier == "large" else (_pool_medium if tier == "medium" else _pool_small)
 	var entry: Array = pool[randi() % pool.size()]
-	_spawn_asteroid(pos, entry[0], entry[1], tier)
+	_spawn_asteroid(pos, entry[0], entry[1], tier, asteroid_type)
 
 
-func _remove_body(body: StaticBody3D) -> void:
+func _remove_body(body: AsteroidBase) -> void:
 	var idx := _bodies.find(body)
 	if idx == -1:
 		return
